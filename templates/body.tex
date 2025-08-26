@@ -1,0 +1,130 @@
+% LTeX: enabled=false
+\documentclass[a4paper,11pt,oneside]{article}
+
+\usepackage{placeins}
+
+\makeatletter
+\AtBeginDocument{%
+  % Modifying section command to include FloatBarrier
+  \expandafter\renewcommand\expandafter\section\expandafter
+    {\expandafter\@fb@secFB\section}%
+  % Modifying subsection command to include FloatBarrier
+  \expandafter\renewcommand\expandafter\subsection\expandafter
+    {\expandafter\@fb@secFB\subsection}%
+  
+  \newcommand\@fb@secFB{\FloatBarrier
+    \gdef\@fb@afterHHook{\@fb@topbarrier \gdef\@fb@afterHHook{}}}%
+  
+  \g@addto@macro\@afterheading{\@fb@afterHHook}%
+  \gdef\@fb@afterHHook{}%
+}
+\makeatother
+
+\usepackage[english]{babel}
+
+\usepackage[T1]{fontenc}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{ifthen}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{blindtext} % https://tex.stackexchange.com/questions/111948/what-is-a-overfull-hbox-9-89561pt-too-wide
+
+\usepackage{helvet} % Add sans-serif font package
+\renewcommand{\familydefault}{\sfdefault} % Set sans-serif as default
+
+\graphicspath{{images/}}
+
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+
+
+\def \lstlistingname {SQL}
+\lstset{
+  language=SQL,
+  tabsize=2,
+  numbers=left,
+  frame=L,
+  floatplacement=hbtp,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  stringstyle=\color{red},
+  commentstyle=\color{gray},
+  captionpos=b, % This sets the caption below the listing
+  showstringspaces=false,
+  literate={'}{{\textquotesingle}}1
+}
+
+% LTeX: enabled=true
+
+\title{IDSV - Old Exam Questions, 2021-present}
+
+\author{\textit{Compiled by Edwin Sundberg}}
+
+\begin{document}
+
+\maketitle \pagebreak
+
+% https://tex.stackexchange.com/questions/111948/what-is-a-overfull-hbox-9-89561pt-too-wide
+\begin{sloppypar}  
+
+\tableofcontents \pagebreak
+
+\section{Preface}
+\label{preface}
+This document contains old exam questions and answers for the course \textit{IDSV - Introduction to Computer and Systems Sciences} at Stockholm University. The questions and answers are collected from the exams held in the years after 2021. They are intended to serve as a study aid and reference for students preparing for their exams.
+
+
+\textbf{Note}: This document contains more questions than what is presented in a single exam, see the course syllabus for more information about your specific exam.
+
+
+\subsection{Generated Notes}
+\label{generatedNotes}
+
+% <<<TEMPLATEVAR_GENERATED_NOTES>>>
+
+
+\section{Svenska utan Svar}
+\label{svenskaUtanSvar}
+
+% <<<TEMPLATEVAR_SWEDISH_QUESTIONS_ONLY>>>
+
+\section{Svenska med Svar}
+\label{svenska}
+
+% <<<TEMPLATEVAR_SWEDISH_QUESTIONS_AND_ANSWERS>>>
+
+\section{English without Answers}
+\label{englishWithoutAnswers}
+
+% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_ONLY>>>
+
+\section{English with Answers}
+\label{englishWithAnswers}
+
+% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_AND_ANSWERS>>>
+
+
+
+
+
+
+
+
+
+\section{Final Words}
+\label{finalWords}
+If you have any questions or issues with the questions and/or answers presented in this document or the document itself, please contact the course administrations.
+
+\pagebreak
+\bibliographystyle{IEEEtran}
+\bibliography{bibtex}
+\bibdata{bibtex}
+
+\end{sloppypar}
+\end{document}
