@@ -15,6 +15,7 @@ from pydantic import BaseModel
 # nq	Number questions.
 # 
 class QuestionType(Enum):
+    essay = "Essay"
     sa = "Short Answer"
     sc = "Single Choice"
     mc = "Multi Choice"
@@ -96,6 +97,9 @@ class QuestionSubject(Enum):
     NLP = "Natural Language Processing"
     PRB = "Problems"
     PRM = "Problem-Solving Machines"
+    CRT = "Cryptography"
+    ERR = "Errors"
+    VAR = "Variables"
 
 # question - The question text
 # answer - The answer text

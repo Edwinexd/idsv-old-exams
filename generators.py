@@ -1,6 +1,6 @@
 import logging
 from typing import Dict
-from models import LANGUAGE_CODE, Generator, Question, QuestionType
+from models import LANGUAGE_CODE, Generator, Question, QuestionContent, QuestionType
 from i18n import LANGUAGES
 
 class _GeneratorRegistry:
@@ -11,8 +11,8 @@ class _GeneratorRegistry:
         cls._generators[generator.supported_type] = generator
 
     @classmethod
-    def get_generator(cls, question_type: QuestionType) -> Generator | None:
-        return cls._generators.get(question_type)
+    def get_generator(cls, question_type: QuestionType) -> Generator:
+        return cls._generators[question_type]
 
 
 registry = _GeneratorRegistry()
@@ -44,9 +44,12 @@ class ShortAnswerGenerator(Generator):
 
         return latex
 
-# sc = "Single Choice" # generates a question with multiple alternatives, only one is correct
+# Essay
+class EssayGenerator(ShortAnswerGenerator):
+    supported_type = QuestionType.essay
 
 class MultipleChoiceGenerator(Generator):
+    _symbol_selection = "$\\square$"  # empty square
     supported_type = QuestionType.mc
 
     def to_latex(self, question: Question, lang: LANGUAGE_CODE, with_answer: bool = False) -> str:
@@ -66,9 +69,9 @@ class MultipleChoiceGenerator(Generator):
         latex += "\\begin{itemize}\n"
         for alternative in content.ans_alternatives:
             if with_answer and content.answer and alternative == content.answer:
-                latex += f"  \\item[$\\square$] \\textbf{{{alternative}}} \\hfill \\textbf{{{language.answer}}}\n"
+                latex += f"  \\item[{self._symbol_selection}] \\textbf{{{alternative}}} \\hfill \\textbf{{{language.answer}}}\n"
             else:
-                latex += f"  \\item[$\\square$] {alternative}\n"
+                latex += f"  \\item[{self._symbol_selection}] {alternative}\n"
         latex += "\\end{itemize}\n\n"
 
         if not with_answer:
@@ -77,22 +80,79 @@ class MultipleChoiceGenerator(Generator):
 
         return latex
 
-# mq = "Multi Question" # generates a questions
-# half of the mq questions isn't actually questions either but rather statements which cant be answered to the expected answer
-class MultiQuestionGenerator(Generator):
-    supported_type = QuestionType.mq
-
-    def to_latex(self, question: Question, lang: LANGUAGE_CODE, with_answer: bool = False) -> str:
-        logging.warning("MultiQuestionGenerator is not implemented yet.") # it contains two questions really, both will be generated
-        return ""
+# sc = "Single Choice" # generates a question with multiple alternatives, only one is correct
+class SingleChoiceGenerator(MultipleChoiceGenerator):
+    supported_type = QuestionType.sc
+    _symbol_selection = "$\\bigcirc$"  # empty circle
 
 
 # dq = "Drop Down"
 # dq is fucked in the provided CSV as no answer alternatives are given, ???
+# due to this being broken we call it as a short answer for now
+class DropDownGenerator(ShortAnswerGenerator):
+    supported_type = QuestionType.dq
+
 
 # nq = "Number"
-
-
+# TODO: I mean it's kinda fine as-is...
+class NumberGenerator(ShortAnswerGenerator):
+    supported_type = QuestionType.nq
 
 
 registry.register_generator(ShortAnswerGenerator())
+registry.register_generator(EssayGenerator())
+registry.register_generator(MultipleChoiceGenerator())
+registry.register_generator(SingleChoiceGenerator())
+registry.register_generator(DropDownGenerator())
+registry.register_generator(NumberGenerator())
+
+
+# mq = "Multi Question" # generates a questions
+# defined last as it uses other generators
+class MultiQuestionGenerator(Generator):
+    supported_type = QuestionType.mq
+
+    def to_latex(self, question: Question, lang: LANGUAGE_CODE, with_answer: bool = False) -> str:
+        language = LANGUAGES[lang]
+        content = question.content.get(lang)
+        if not content:
+            logging.warning(f"Question {question.id} does not have content in language {lang}")
+            return ""     
+
+        base_content = content.question
+        # believe it or not this is also a comma separated list of answers, one for each sub-question...
+        answers = content.answer.split(",") if content.answer else []
+        variants: list[str] = content.q_alternatives or []
+        variants_ans: list[str] = content.ans_alternatives or [] # each is either "essay" or a comma separated list of alternatives...
+
+        if len(variants) != len(variants_ans):
+            logging.warning(f"Question {question.id} has mismatched number of question and answer alternatives")
+            return ""
+
+        output = ""
+        for i, (var, var_ans) in enumerate(zip(variants, variants_ans)):
+            if var_ans.strip() == "essay":
+                question = Question(
+                    id=question.id * 100 + i,  # Generate a new ID based on parent question ID
+                    chapter=question.chapter,
+                    type=QuestionType.essay,
+                    subject=question.subject,
+                    content={lang: QuestionContent(question=f"{base_content} - {var}", answer=answers[i] if i < len(answers) else None)}
+                )
+                output += registry.get_generator(QuestionType.essay).to_latex(question, lang, with_answer)
+                continue
+
+            # comma separated list of alternatives, sc is inferred from the broken CSV
+            question = Question(
+                id=question.id * 100 + i,  # Generate a new ID based on parent question ID
+                chapter=question.chapter,
+                type=QuestionType.sc,
+                subject=question.subject,
+                content={lang: QuestionContent(question=f"{base_content} - {var}", answer=answers[i] if i < len(answers) else None, ans_alternatives=[a.strip() for a in var_ans.split(",")] if var_ans.count(",") > 0 else None)}
+            )
+            output += registry.get_generator(QuestionType.sc).to_latex(question, lang, with_answer)
+
+        return output
+
+
+registry.register_generator(MultiQuestionGenerator())
