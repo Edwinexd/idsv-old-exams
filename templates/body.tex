@@ -1,7 +1,13 @@
 % LTeX: enabled=false
-\documentclass[a4paper,11pt,oneside]{article}
+\documentclass[a4paper,11pt,oneside]{book}
+
 
 \usepackage{placeins}
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+
+\usepackage[style=numeric]{biblatex}
+\addbibresource{bibtex.bib}
 
 \makeatletter
 \AtBeginDocument{%
@@ -24,10 +30,7 @@
 
 \usepackage[T1]{fontenc}
 
-\usepackage[utf8]{inputenc}
-
 \usepackage{graphicx}
-\usepackage{cite}
 \usepackage{url}
 \usepackage{ifthen}
 \usepackage{listings}
@@ -42,23 +45,6 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{url}
 
-
-
-\def \lstlistingname {SQL}
-\lstset{
-  language=SQL,
-  tabsize=2,
-  numbers=left,
-  frame=L,
-  floatplacement=hbtp,
-  basicstyle=\ttfamily\small,
-  keywordstyle=\color{blue},
-  stringstyle=\color{red},
-  commentstyle=\color{gray},
-  captionpos=b, % This sets the caption below the listing
-  showstringspaces=false,
-  literate={'}{{\textquotesingle}}1
-}
 
 % LTeX: enabled=true
 
@@ -76,6 +62,8 @@
 
 \tableofcontents \pagebreak
 
+\chapter{About this Document}
+
 \section{Preface}
 \label{preface}
 This document contains old exam questions and answers for the course \textit{IDSV - Introduction to Computer and Systems Sciences} at Stockholm University. The questions and answers are collected from the exams held in the years after 2021. They are intended to serve as a study aid and reference for students preparing for their exams.
@@ -83,9 +71,7 @@ This document contains old exam questions and answers for the course \textit{IDS
 
 \textbf{Note}: This document contains more questions than what is presented in a single exam, see the course syllabus for more information about your specific exam.
 
-\textsuperscript{}
-
-\subsection{Generated Notes}
+\section{Generated Notes}
 \label{generatedNotes}
 
 This document is automatically generated, bellow follows notes (if any) produced during the generation process.
@@ -93,22 +79,22 @@ This document is automatically generated, bellow follows notes (if any) produced
 % <<<TEMPLATEVAR_GENERATED_NOTES>>>
 
 
-\section{Svenska utan Svar}
+\chapter{Svenska utan Svar}
 \label{svenskaUtanSvar}
 
 % <<<TEMPLATEVAR_SWEDISH_QUESTIONS_ONLY>>>
 
-\section{Svenska med Svar}
+\chapter{Svenska med Svar}
 \label{svenska}
 
 % <<<TEMPLATEVAR_SWEDISH_QUESTIONS_AND_ANSWERS>>>
 
-\section{English without Answers}
+\chapter{English without Answers}
 \label{englishWithoutAnswers}
 
 % <<<TEMPLATEVAR_ENGLISH_QUESTIONS_ONLY>>>
 
-\section{English with Answers}
+\chapter{English with Answers}
 \label{englishWithAnswers}
 
 % <<<TEMPLATEVAR_ENGLISH_QUESTIONS_AND_ANSWERS>>>
@@ -121,12 +107,13 @@ This document is automatically generated, bellow follows notes (if any) produced
 
 
 
-\section{Final Words}
+\chapter{Final Words}
 \label{finalWords}
 If you have any questions or issues with the questions and/or answers presented in this document or the document itself, please contact the course administrations.
 
 \pagebreak
 
+\printbibliography
 
 \end{sloppypar}
 \end{document}

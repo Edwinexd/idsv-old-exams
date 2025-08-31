@@ -77,7 +77,7 @@ class CSVQuestionParser:
                     question=row.get('q_se', '').strip(),
                     answer=row.get('ans_se', '').strip() if row.get('ans_se') else None,
                     q_alternatives=self._parse_alternatives(row.get('q_alt_se', ''), separators=["_"]),
-                    ans_alternatives=self._parse_alternatives(row.get('ans_alt_se', ''), separators=["_"])
+                    ans_alternatives=self._parse_alternatives(row.get('ans_alt_se', ''))
                 )
             
             # English content
@@ -86,7 +86,7 @@ class CSVQuestionParser:
                     question=row.get('q_en', '').strip(),
                     answer=row.get('ans_en', '').strip() if row.get('ans_en') else None,
                     q_alternatives=self._parse_alternatives(row.get('q_alt_en', ''), separators=["_"]),
-                    ans_alternatives=self._parse_alternatives(row.get('ans_alt_en', ''), separators=["_"])
+                    ans_alternatives=self._parse_alternatives(row.get('ans_alt_en', ''))
                 )
             
             # Create Question object

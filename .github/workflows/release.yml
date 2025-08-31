@@ -16,10 +16,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Run Python Compiler
+        run: python3 main.py
+
       - name: Compile LaTeX Document
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: main.tex
+          root_file: output.tex
 
       - name: Extract Short Commit SHA
         id: short_sha
@@ -28,7 +31,7 @@ jobs:
           echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_OUTPUT
 
       - name: Rename PDF
-        run: mv main.pdf "old-exam.pdf"
+        run: mv output.pdf "old-exam.pdf"
 
       - name: Create GitHub Release and Upload PDF
         uses: softprops/action-gh-release@v2

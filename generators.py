@@ -30,7 +30,7 @@ class ShortAnswerGenerator(Generator):
             # return f"\\textit{{{language.content_not_available_language}}}\n\n"
             return ""
 
-        latex = f"\\subsection{{{content.question}}}\n\n"
+        latex = f"\\section{{{content.question}}}\n\n"
         latex += f"\\label{{q:{question.id}:sa:{lang}:{with_answer}}}\n\n"
         if with_answer and content.answer:
             latex += f"\\textbf{{{language.answer}}}: {content.answer}\n\n"
@@ -59,7 +59,7 @@ class MultipleChoiceGenerator(Generator):
             logging.warning(f"Question {question.id} does not have content in language {lang}")
             return ""
 
-        latex = f"\\subsection{{{content.question}}}\n\n"
+        latex = f"\\section{{{content.question}}}\n\n"
         latex += f"\\label{{q:{question.id}:mc:{lang}:{with_answer}}}\n\n"
 
         if not content.ans_alternatives:
