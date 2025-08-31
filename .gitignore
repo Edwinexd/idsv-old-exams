@@ -12,5 +12,7 @@
 *.bcf
 *.run.xml
 .vscode/settings.json
+output.tex
+
 
 __pycache__/

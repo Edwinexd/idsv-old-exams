@@ -1,6 +1,8 @@
+import re
 import parser
 from generators import registry
 from pylatexenc.latexencode import UnicodeToLatexEncoder
+
 
 # Initialize Unicode to LaTeX encoder
 latex_encoder = UnicodeToLatexEncoder(
@@ -62,6 +64,14 @@ def generate_latex_document():
     output = output.replace("% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_ONLY>>>", english_questions_only.strip())
     output = output.replace("% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_AND_ANSWERS>>>", english_questions_and_answers.strip())
     
+    output = re.sub(r"(n\^\d+)", lambda m: f"${m.group(1)}$", output, flags=re.MULTILINE)
+    output = re.sub(r"(\d+\^n)", lambda m: f"${m.group(1)}$", output, flags=re.MULTILINE)
+    output = re.sub(r"(2\^\d+)", lambda m: f"${m.group(1)}$", output, flags=re.MULTILINE)
+
+    output = re.sub(r"\\ensuremath\{\\Theta\}", "O", output, flags=re.MULTILINE)
+
+    
+
     # Write output file with UTF-8 encoding, but content is LaTeX-safe
     with open("output.tex", "w", encoding="utf-8") as f:
         f.write(output)
