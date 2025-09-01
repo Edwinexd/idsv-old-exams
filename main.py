@@ -2,7 +2,7 @@ import logging
 import re
 from typing import Dict, List
 from models import Question, QuestionSubject
-import parser
+import csv_parser
 from generators import registry
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 
@@ -24,7 +24,7 @@ def generate_latex_document():
     """Generate the complete LaTeX document with all sections."""
     
     # Read questions from CSV with proper encoding
-    questions = parser.read_csv_file("question_bank/2025-08-31.csv")
+    questions = csv_parser.read_csv_file("question_bank/2025-08-31.csv")
     
     # Read the template with UTF-8 encoding
     with open("templates/body.tex", "r", encoding="utf-8") as f:

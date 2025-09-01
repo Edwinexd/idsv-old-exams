@@ -13,6 +13,7 @@
 *.run.xml
 .vscode/settings.json
 output.tex
+.env
 
 
 __pycache__/
