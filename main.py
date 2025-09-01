@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Dict, List
 from models import Question, QuestionSubject
@@ -46,6 +47,10 @@ def generate_latex_document():
 
     # \section{Subject} is inserted after each subject type
     for subject in QuestionSubject:
+        if subject.name not in questions_mapping:
+            logging.warning(f"The subject {subject.name}:{subject.value} is not used by any questions.")
+            continue
+
         title = f"\\section{{{subject.value}}}\n\n"
         swedish_questions_only += title
         swedish_questions_and_answers += title
