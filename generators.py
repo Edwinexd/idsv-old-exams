@@ -70,7 +70,7 @@ class MultipleChoiceGenerator(Generator):
 
         latex += "\\begin{itemize}\n"
         for alternative in content.ans_alternatives:
-            if with_answer and content.answer and alternative == content.answer:
+            if with_answer and content.answer and alternative.lower().strip() == content.answer.lower().strip():
                 latex += f"  \\item[{self._symbol_selection}] \\textbf{{{alternative}}} \\hfill \\textbf{{{language.answer}}}\n"
             else:
                 latex += f"  \\item[{self._symbol_selection}] {alternative}\n"
