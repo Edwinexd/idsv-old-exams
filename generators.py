@@ -69,15 +69,21 @@ class MultipleChoiceGenerator(Generator):
             return ""
 
         latex += "\\begin{itemize}\n"
+        answer_highlighted = False
         for alternative in content.ans_alternatives:
-            if with_answer and content.answer and alternative.lower().strip() == content.answer.lower().strip():
-                latex += f"  \\item[{self._symbol_selection}] \\textbf{{{alternative}}} \\hfill \\textbf{{{language.answer}}}\n"
+            if with_answer and content.answer and alternative.lower().strip() in content.answer.lower().strip():
+                latex += f"  \\item[{self._symbol_selection}] \\textbf{{{alternative}}}\n"
+                answer_highlighted = True
             else:
                 latex += f"  \\item[{self._symbol_selection}] {alternative}\n"
         latex += "\\end{itemize}\n\n"
 
         if with_answer and not content.answer:
             latex += f"\\textbf{{{language.answer}}}: {language.content_not_available_language}\n\n"
+
+        if with_answer and not answer_highlighted:
+            latex += f"\\textbf{{{language.answer}}}: {content.answer}\n\n"
+
 
         if not with_answer:
             latex += "\\vspace{1cm}\n\n"
