@@ -1,4 +1,6 @@
 import re
+from typing import Dict, List
+from models import Question, QuestionSubject
 import parser
 from generators import registry
 from pylatexenc.latexencode import UnicodeToLatexEncoder
@@ -32,31 +34,51 @@ def generate_latex_document():
     swedish_questions_and_answers = ""
     english_questions_only = ""
     english_questions_and_answers = ""
-    
+
+    # map by subject, order by id
+    questions_mapping: Dict[str, List[Question]] = {}
     for question in questions:
-        # Swedish questions only (no answers)
-        if 'sv' in question.content:
-            latex_output = registry.get_generator(question.type).to_latex(question, "sv", with_answer=False)
-            swedish_questions_only += encode_for_latex(latex_output)
-            swedish_questions_only += "\n\n"
-        
-        # Swedish questions with answers
-        if 'sv' in question.content:
-            latex_output = registry.get_generator(question.type).to_latex(question, "sv", with_answer=True)
-            swedish_questions_and_answers += encode_for_latex(latex_output)
-            swedish_questions_and_answers += "\n\n"
-        
-        # English questions only (no answers)
-        if 'en' in question.content:
-            latex_output = registry.get_generator(question.type).to_latex(question, "en", with_answer=False)
-            english_questions_only += encode_for_latex(latex_output)
-            english_questions_only += "\n\n"
-        
-        # English questions with answers
-        if 'en' in question.content:
-            latex_output = registry.get_generator(question.type).to_latex(question, "en", with_answer=True)
-            english_questions_and_answers += encode_for_latex(latex_output)
-            english_questions_and_answers += "\n\n"
+        questions_mapping.setdefault(question.subject.name, [])
+        questions_mapping[question.subject.name].append(question)
+
+    for values in questions_mapping.values():
+        values.sort(key=lambda q: q.id)
+
+    # \section{Subject} is inserted after each subject type
+    for subject in QuestionSubject:
+        title = f"\\section{{{subject.value}}}\n\n"
+        swedish_questions_only += title
+        swedish_questions_and_answers += title
+        english_questions_only += title
+        english_questions_and_answers += title
+    
+        for question in questions_mapping[subject.name]:
+            # Swedish questions only (no answers)
+            if 'sv' in question.content:
+                latex_output = registry.get_generator(question.type).to_latex(question, "sv", with_answer=False)
+                swedish_questions_only += encode_for_latex(latex_output)
+                swedish_questions_only += "\n\n"
+            
+            # Swedish questions with answers
+            if 'sv' in question.content:
+                latex_output = registry.get_generator(question.type).to_latex(question, "sv", with_answer=True)
+                swedish_questions_and_answers += encode_for_latex(latex_output)
+                swedish_questions_and_answers += "\n\n"
+            
+            # English questions only (no answers)
+            if 'en' in question.content:
+                latex_output = registry.get_generator(question.type).to_latex(question, "en", with_answer=False)
+                english_questions_only += encode_for_latex(latex_output)
+                english_questions_only += "\n\n"
+            
+            # English questions with answers
+            if 'en' in question.content:
+                latex_output = registry.get_generator(question.type).to_latex(question, "en", with_answer=True)
+                english_questions_and_answers += encode_for_latex(latex_output)
+                english_questions_and_answers += "\n\n"
+
+
+    
     
     # Replace template variables
     output = template.replace("% <<<TEMPLATEVAR_SWEDISH_QUESTIONS_ONLY>>>", swedish_questions_only.strip())
