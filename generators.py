@@ -34,6 +34,8 @@ class ShortAnswerGenerator(Generator):
         latex += f"\\label{{q:{question.id}:sa:{lang}:{with_answer}}}\n\n"
         if with_answer and content.answer:
             latex += f"\\textbf{{{language.answer}}}: {content.answer}\n\n"
+        elif with_answer and not content.answer:
+            latex += f"\\textbf{{{language.answer}}}: {language.content_not_available_language}\n\n"
         else:
             # TODO Typable pdf text box?
             latex += "\\vspace{2cm}\n\n"  # Space for answer
@@ -73,6 +75,9 @@ class MultipleChoiceGenerator(Generator):
             else:
                 latex += f"  \\item[{self._symbol_selection}] {alternative}\n"
         latex += "\\end{itemize}\n\n"
+
+        if with_answer and not content.answer:
+            latex += f"\\textbf{{{language.answer}}}: {language.content_not_available_language}\n\n"
 
         if not with_answer:
             latex += "\\vspace{1cm}\n\n"
