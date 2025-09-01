@@ -40,7 +40,7 @@ jobs:
           echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_OUTPUT
 
       - name: Rename PDF
-        run: mv output.pdf "old-exam.pdf"
+        run: mv output.pdf "old-exam-questions.pdf"
 
       - name: Create GitHub Release and Upload PDF
         uses: softprops/action-gh-release@v2
@@ -50,6 +50,6 @@ jobs:
           body: |
             This is a release of the document built from commit ${{ github.sha }}.
           files: |
-            old-exam.pdf
+            old-exam-questions.pdf
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
