@@ -1,0 +1,101 @@
+\section{The Machine's Language}
+
+Each machine instruction is two bytes long. The first 4 bits provide the op-code; the last 12 bits make up the operand field. The table that follows lists the instructions in hexadecimal notation together with a short description of each. The letters R, S, and T are used in place of hexadecimal digits in those fields representing a register identifier that varies depending on the particular application of the instruction. The letters X and Y are used in lieu of hexadecimal digits in variable fields not representing a register.
+
+\begin{longtable}{|c|c|p{10cm}|}
+\hline
+\textbf{Op-code} & \textbf{Operand} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Op-code} & \textbf{Operand} & \textbf{Description} \\
+\hline
+\endhead
+1 & RXY & LOAD the register R with the bit pattern found in the memory cell whose address is XY. \\
+  &     & \textit{Example:} 14A3 would cause the contents of the memory cell located at address A3 to be placed in register 4. \\
+\hline
+2 & RXY & LOAD the register R with the bit pattern XY. \\
+  &     & \textit{Example:} 20A3 would cause the value A3 to be placed in register 0. \\
+\hline
+3 & RXY & STORE the bit pattern found in register R in the memory cell whose address is XY. \\
+  &     & \textit{Example:} 35B1 would cause the contents of register 5 to be placed in the memory cell whose address is B1. \\
+\hline
+4 & 0RS & MOVE the bit pattern found in register R to register S. \\
+  &     & \textit{Example:} 40A4 would cause the contents of register A to be copied into register 4. \\
+\hline
+5 & RST & ADD the bit patterns in registers S and T as though they were two's complement representations and leave the result in register R. \\
+  &     & \textit{Example:} 5726 would cause the binary values in registers 2 and 6 to be added and the sum placed in register 7. \\
+\hline
+6 & RST & ADD the bit patterns in registers S and T as though they represented values in floating-point notation and leave the floating-point result in register R. \\
+  &     & \textit{Example:} 634E would cause the values in registers 4 and E to be added as floating-point values and the result to be placed in register 3. \\
+\hline
+7 & RST & OR the bit patterns in registers S and T and place the result in register R. \\
+  &     & \textit{Example:} 7CB4 would cause the result of ORing the contents of registers B and 4 to be placed in register C. \\
+\hline
+8 & RST & AND the bit patterns in registers S and T and place the result in register R. \\
+  &     & \textit{Example:} 8045 would cause the result of ANDing the contents of registers 4 and 5 to be placed in register 0. \\
+\hline
+9 & RST & EXCLUSIVE OR the bit patterns in registers S and T and place the result in register R. \\
+  &     & \textit{Example:} 95F3 would cause the result of EXCLUSIVE ORing the contents of registers F and 3 to be placed in register 5. \\
+\hline
+A & R0X & ROTATE the bit pattern in register R one bit to the right X times. Each time place the bit that started at the low-order end at the high-order end. \\
+  &     & \textit{Example:} A403 would cause the contents of register 4 to be rotated 3 bits to the right in a circular fashion. \\
+\hline
+B & RXY & JUMP to the instruction located in the memory cell at address XY if the bit pattern in register R is equal to the bit pattern in register number 0. Otherwise, continue with the normal sequence of execution. (The jump is implemented by copying XY into the program counter during the execute phase.) \\
+  &     & \textit{Example:} B43C would first compare the contents of register 4 with the contents of register 0. If the two were equal, the pattern 3C would be placed in the program counter so that the next instruction executed would be the one located at that memory address. Otherwise, nothing would be done and program execution would continue in its normal sequence. \\
+\hline
+C & 000 & HALT execution. \\
+  &     & \textit{Example:} C000 would cause program execution to stop. \\
+\hline
+\end{longtable}
+
+\section{Maskinens språk}
+
+Varje maskininstruktion är två bytes lång. De första 4 bitarna är op-koden (instruktionen); de sista 12 bitarna är operanden (argumentet). Tabellen nedanför innehåller op-koder (instruktioner) i hexadecimal notation, tillsammans med en kortfattad beskrivning av varje instruktion. Bokstäverna R, S och T används istället för hexadecimala siffror i de fält som representerar en registeridentifierare som varierar beroende på den specifika tillämpningen av instruktionen. Bokstäverna X och Y används istället för hexadecimala siffror i variabla fält som inte representerar ett register.
+
+\begin{longtable}{|c|c|p{10cm}|}
+\hline
+\textbf{Op-kod} & \textbf{Operand} & \textbf{Beskrivning} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Op-kod} & \textbf{Operand} & \textbf{Beskrivning} \\
+\hline
+\endhead
+1 & RXY & LADDA (LOAD) registret R med bitmönstret som finns i minnescellen vars adress är XY. \\
+  &     & \textit{Exempel:} 14A3 skulle göra att innehållet i minnescellen på adress A3 placeras i register 4. \\
+\hline
+2 & RXY & LADDA (LOAD) registret R med bitmönstret XY. \\
+  &     & \textit{Exempel:} 20A3 skulle göra att värdet A3 placeras i register 0. \\
+\hline
+3 & RXY & LAGRA (STORE) bitmönstret som finns i register R i minnescellen vars adress är XY. \\
+  &     & \textit{Exempel:} 35B1 skulle göra att innehållet i register 5 placeras i minnescellen vars adress är B1. \\
+\hline
+4 & 0RS & FLYTTA (MOVE) bitmönstret som finns i register R till register S. \\
+  &     & \textit{Exempel:} 40A4 skulle göra att innehållet i register A kopieras till register 4. \\
+\hline
+5 & RST & ADDERA (ADD) bitmönstren i register S och T som om de var två-komplementrepresentationer och spara resultatet i register R. \\
+  &     & \textit{Exempel:} 5726 skulle göra att de binära värdena i register 2 och 6 läggs till och summan placeras i register 7. \\
+\hline
+6 & RST & ADDERA (ADD) bitmönstren i register S och T som om de representerade värden i flyttalsnotation och spara flyttalsresultatet i register R. \\
+  &     & \textit{Exempel:} 634E skulle orsaka att värdena i register 4 och E adderas som flyttalsvärden och resultatet placeras i register 3. \\
+\hline
+7 & RST & ELLER (OR) utför OR på bitmönstren i register S och T och placera resultatet i register R. \\
+  &     & \textit{Exempel:} 7CB4 skulle leda till att resultatet av att OR-operationen med register B och 4 placeras i register C. \\
+\hline
+8 & RST & OCH (AND) utför OCH med bitmönstren i register S och T och placera resultatet i register R. \\
+  &     & \textit{Exempel:} 8045 skulle göra att resultatet av OCH att innehållet i register 4 och 5 placeras i register 0. \\
+\hline
+9 & RST & EXKLUSIV ELLER (EXCLUSIVE OR / XOR) gör XOR med bitmönstren i register S och T och placera resultatet i register R. \\
+  &     & \textit{Exempel:} 95F3 skulle leda till att resultatet av EXKLUSIV ELLER med innehållet i register F och 3 placeras i register 5. \\
+\hline
+A & R0X & ROTERA (ROTATE) bitmönstret i register R en bit till höger X gånger. Biten som roteras ut från höger placeras längst till vänster (low-order till high-order). \\
+  &     & \textit{Exempel:} A403 skulle göra att innehållet i register 4 roteras 3 bitar till höger på ett cirkulärt sätt. \\
+\hline
+B & RXY & HOPPA (JUMP) till instruktionen som finns i minnescellen vid adress XY om bitmönstret i register R är lika med bitmönstret i register nummer 0. Fortsätt annars med den normala exekveringssekvensen. (Hoppet implementeras genom att kopiera XY till programräknaren under körningsfasen.) \\
+  &     & \textit{Exempel:} B43C skulle först jämföra innehållet i register 4 med innehållet i registret 0. Om de två var lika skulle mönstret 3C placeras i programräknaren så att nästa utförda instruktion skulle vara den som finns på den minnesadressen. Annars skulle ingenting göras och programkörning skulle fortsätta i sin normala sekvens. \\
+\hline
+C & 000 & STOPPA (HALT) utförande. \\
+  &     & \textit{Exempel:} C000 skulle göra att programkörningen stoppas. \\
+\hline
+\end{longtable}
