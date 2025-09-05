@@ -1,4 +1,5 @@
 import logging
+import random
 from typing import Dict
 from models import LANGUAGE_CODE, Generator, Question, QuestionContent, QuestionType
 from i18n import LANGUAGES
@@ -70,7 +71,12 @@ class MultipleChoiceGenerator(Generator):
 
         latex += "\\begin{itemize}\n"
         answer_highlighted = False
-        for alternative in content.ans_alternatives:
+        shuffled = list(content.ans_alternatives)
+        if content.answer:
+            shuffled.append(content.answer)
+        random.seed(question.id)  # seed with question id for consistency between compilations
+        random.shuffle(shuffled)
+        for alternative in shuffled:
             if with_answer and content.answer and alternative.lower().strip() in content.answer.lower().strip():
                 latex += f"  \\item[{self._symbol_selection}] \\textbf{{{alternative}}}\n"
                 answer_highlighted = True
