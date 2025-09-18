@@ -21,7 +21,7 @@ def encode_for_latex(text):
     
     return latex_encoder.unicode_to_latex(text)
 
-def generate_latex_document(subject_filter: Optional[str] = None, custom_title: Optional[str] = None):
+def generate_latex_document(subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, custom_title: Optional[str] = None):
     """Generate the complete LaTeX document with all sections."""
     
     # Read questions from CSV with proper encoding
@@ -39,12 +39,19 @@ def generate_latex_document(subject_filter: Optional[str] = None, custom_title: 
                 print(f"  {subject.name}: {subject.value}")
             return
     
+    # Filter questions by chapter if specified
+    if chapter_filter is not None:
+        questions = [q for q in questions if q.chapter == chapter_filter]
+        print(f"Filtering questions for chapter: {chapter_filter} ({len(questions)} questions)")
+    
     # Determine the title
     if custom_title:
         document_title = custom_title
     elif subject_filter:
         subject_enum = QuestionSubject[subject_filter.upper()]
         document_title = f"{subject_enum.value} Questions"
+    elif chapter_filter is not None:
+        document_title = f"Chapter {chapter_filter} Questions"
     else:
         document_title = "IDSV - Old Exam Questions, 2021-present"
     
@@ -128,6 +135,8 @@ def generate_latex_document(subject_filter: Optional[str] = None, custom_title: 
     output_filename = "output.tex"
     if subject_filter:
         output_filename = f"output_{subject_filter.lower()}.tex"
+    elif chapter_filter is not None:
+        output_filename = f"output_chapter_{chapter_filter}.tex"
     
     with open(output_filename, "w", encoding="utf-8") as f:
         f.write(output)
@@ -142,6 +151,8 @@ def main():
     parser = argparse.ArgumentParser(description='Generate LaTeX document from question bank')
     parser.add_argument('--subject', '-s', 
                        help='Generate questions for a specific subject only. Use subject name from QuestionSubject enum (e.g., HIS, BIN, etc.)')
+    parser.add_argument('--chapter', '-c', type=int,
+                       help='Generate questions for a specific chapter only. Use chapter number (e.g., 0, 1, 2, etc.)')
     parser.add_argument('--title', '-t',
                        help='Custom title for the document. If not provided, defaults to subject-specific title when filtering by subject.')
     parser.add_argument('--list-subjects', action='store_true',
@@ -155,7 +166,11 @@ def main():
             print(f"  {subject.name}: {subject.value}")
         return
     
-    generate_latex_document(args.subject, args.title)
+    if args.subject and args.chapter is not None:
+        print("Error: Cannot specify both --subject and --chapter filters at the same time")
+        return
+    
+    generate_latex_document(args.subject, args.chapter, args.title)
 
 
 if __name__ == "__main__":

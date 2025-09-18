@@ -13,16 +13,190 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        subject: [
-          'ADR', 'AGL', 'AI', 'ALG', 'ANM', 'ASB', 'BIN', 'BIT', 'BOL', 'CAR',
-          'CCS', 'CHR', 'CME', 'CMP', 'CNP', 'COD', 'COL', 'COM', 'CRP', 'CRT',
-          'DAT', 'DBS', 'DDL', 'DEC', 'DIG', 'DLC', 'DMN', 'DRM', 'DTP', 'DTS',
-          'ERR', 'GAI', 'HEX', 'HIS', 'HTM', 'INR', 'LIG', 'LOG', 'MAL', 'MAS',
-          'MAW', 'MCL', 'MDL', 'MDN', 'MEM', 'MIS', 'NCO', 'NEN', 'NET', 'NLP',
-          'OPR', 'OPS', 'PRB', 'PRC', 'PRD', 'PRL', 'PRM', 'PRO', 'PRT', 'PTN',
-          'PTR', 'REG', 'RIT', 'RLT', 'SAM', 'SBR', 'SCR', 'SER', 'SFD', 'SSI',
-          'TDG', 'TRN', 'TST', 'TWO', 'VAR', 'VER', 'ALL'
-        ]
+        include:
+          # All subjects compilation
+          - type: 'subject'
+            value: 'ADR'
+          - type: 'subject'
+            value: 'AGL'
+          - type: 'subject'
+            value: 'AI'
+          - type: 'subject'
+            value: 'ALG'
+          - type: 'subject'
+            value: 'ANM'
+          - type: 'subject'
+            value: 'ASB'
+          - type: 'subject'
+            value: 'BIN'
+          - type: 'subject'
+            value: 'BIT'
+          - type: 'subject'
+            value: 'BOL'
+          - type: 'subject'
+            value: 'CAR'
+          - type: 'subject'
+            value: 'CCS'
+          - type: 'subject'
+            value: 'CHR'
+          - type: 'subject'
+            value: 'CME'
+          - type: 'subject'
+            value: 'CMP'
+          - type: 'subject'
+            value: 'CNP'
+          - type: 'subject'
+            value: 'COD'
+          - type: 'subject'
+            value: 'COL'
+          - type: 'subject'
+            value: 'COM'
+          - type: 'subject'
+            value: 'CRP'
+          - type: 'subject'
+            value: 'CRT'
+          - type: 'subject'
+            value: 'DAT'
+          - type: 'subject'
+            value: 'DBS'
+          - type: 'subject'
+            value: 'DDL'
+          - type: 'subject'
+            value: 'DEC'
+          - type: 'subject'
+            value: 'DIG'
+          - type: 'subject'
+            value: 'DLC'
+          - type: 'subject'
+            value: 'DMN'
+          - type: 'subject'
+            value: 'DRM'
+          - type: 'subject'
+            value: 'DTP'
+          - type: 'subject'
+            value: 'DTS'
+          - type: 'subject'
+            value: 'ERR'
+          - type: 'subject'
+            value: 'GAI'
+          - type: 'subject'
+            value: 'HEX'
+          - type: 'subject'
+            value: 'HIS'
+          - type: 'subject'
+            value: 'HTM'
+          - type: 'subject'
+            value: 'INR'
+          - type: 'subject'
+            value: 'LIG'
+          - type: 'subject'
+            value: 'LOG'
+          - type: 'subject'
+            value: 'MAL'
+          - type: 'subject'
+            value: 'MAS'
+          - type: 'subject'
+            value: 'MAW'
+          - type: 'subject'
+            value: 'MCL'
+          - type: 'subject'
+            value: 'MDL'
+          - type: 'subject'
+            value: 'MDN'
+          - type: 'subject'
+            value: 'MEM'
+          - type: 'subject'
+            value: 'MIS'
+          - type: 'subject'
+            value: 'NCO'
+          - type: 'subject'
+            value: 'NEN'
+          - type: 'subject'
+            value: 'NET'
+          - type: 'subject'
+            value: 'NLP'
+          - type: 'subject'
+            value: 'OPR'
+          - type: 'subject'
+            value: 'OPS'
+          - type: 'subject'
+            value: 'PRB'
+          - type: 'subject'
+            value: 'PRC'
+          - type: 'subject'
+            value: 'PRD'
+          - type: 'subject'
+            value: 'PRL'
+          - type: 'subject'
+            value: 'PRM'
+          - type: 'subject'
+            value: 'PRO'
+          - type: 'subject'
+            value: 'PRT'
+          - type: 'subject'
+            value: 'PTN'
+          - type: 'subject'
+            value: 'PTR'
+          - type: 'subject'
+            value: 'REG'
+          - type: 'subject'
+            value: 'RIT'
+          - type: 'subject'
+            value: 'RLT'
+          - type: 'subject'
+            value: 'SAM'
+          - type: 'subject'
+            value: 'SBR'
+          - type: 'subject'
+            value: 'SCR'
+          - type: 'subject'
+            value: 'SER'
+          - type: 'subject'
+            value: 'SFD'
+          - type: 'subject'
+            value: 'SSI'
+          - type: 'subject'
+            value: 'TDG'
+          - type: 'subject'
+            value: 'TRN'
+          - type: 'subject'
+            value: 'TST'
+          - type: 'subject'
+            value: 'TWO'
+          - type: 'subject'
+            value: 'VAR'
+          - type: 'subject'
+            value: 'VER'
+          # All chapters compilation
+          - type: 'chapter'
+            value: '0'
+          - type: 'chapter'
+            value: '1'
+          - type: 'chapter'
+            value: '2'
+          - type: 'chapter'
+            value: '3'
+          - type: 'chapter'
+            value: '4'
+          - type: 'chapter'
+            value: '5'
+          - type: 'chapter'
+            value: '6'
+          - type: 'chapter'
+            value: '7'
+          - type: 'chapter'
+            value: '8'
+          - type: 'chapter'
+            value: '9'
+          - type: 'chapter'
+            value: '10'
+          - type: 'chapter'
+            value: '11'
+          - type: 'chapter'
+            value: '12'
+          # Complete compilation
+          - type: 'all'
+            value: 'ALL'
 
     steps:
       - name: Checkout Repository
@@ -37,25 +211,32 @@ jobs:
       - name: Install Python Dependencies
         run: pip install -r requirements.txt
 
-      - name: Run Python Compiler for Subject
+      - name: Run Python Compiler for Subject/Chapter
         run: |
-          if [ "${{ matrix.subject }}" = "ALL" ]; then
+          if [ "${{ matrix.type }}" = "all" ]; then
             python3 main.py
-          else
+          elif [ "${{ matrix.type }}" = "subject" ]; then
             # Get subject name for title using helper script
-            SUBJECT_NAME=$(python3 .github/workflows/get_subject_title.py ${{ matrix.subject }})
-            python3 main.py --subject ${{ matrix.subject }} --title "$SUBJECT_NAME"
+            SUBJECT_NAME=$(python3 .github/workflows/get_subject_title.py ${{ matrix.value }})
+            python3 main.py --subject ${{ matrix.value }} --title "$SUBJECT_NAME"
+          elif [ "${{ matrix.type }}" = "chapter" ]; then
+            # Get chapter name for title using helper script
+            CHAPTER_NAME=$(python3 .github/workflows/get_chapter_title.py ${{ matrix.value }})
+            python3 main.py --chapter ${{ matrix.value }} --title "$CHAPTER_NAME"
           fi
 
       - name: Determine LaTeX file
         id: latex_file
         run: |
-          if [ "${{ matrix.subject }}" = "ALL" ]; then
+          if [ "${{ matrix.type }}" = "all" ]; then
             echo "latex_file=output.tex" >> $GITHUB_OUTPUT
             echo "pdf_name=old-exam-questions-all.pdf" >> $GITHUB_OUTPUT
-          else
-            echo "latex_file=output_$(echo ${{ matrix.subject }} | tr '[:upper:]' '[:lower:]').tex" >> $GITHUB_OUTPUT
-            echo "pdf_name=old-exam-questions-${{ matrix.subject }}.pdf" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.type }}" = "subject" ]; then
+            echo "latex_file=output_$(echo ${{ matrix.value }} | tr '[:upper:]' '[:lower:]').tex" >> $GITHUB_OUTPUT
+            echo "pdf_name=old-exam-questions-${{ matrix.value }}.pdf" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.type }}" = "chapter" ]; then
+            echo "latex_file=output_chapter_${{ matrix.value }}.tex" >> $GITHUB_OUTPUT
+            echo "pdf_name=old-exam-questions-chapter-${{ matrix.value }}.pdf" >> $GITHUB_OUTPUT
           fi
 
       - name: Compile LaTeX Document
@@ -71,16 +252,18 @@ jobs:
 
       - name: Rename PDF
         run: |
-          if [ "${{ matrix.subject }}" = "ALL" ]; then
+          if [ "${{ matrix.type }}" = "all" ]; then
             mv output.pdf "${{ steps.latex_file.outputs.pdf_name }}"
-          else
-            mv "output_$(echo ${{ matrix.subject }} | tr '[:upper:]' '[:lower:]').pdf" "${{ steps.latex_file.outputs.pdf_name }}"
+          elif [ "${{ matrix.type }}" = "subject" ]; then
+            mv "output_$(echo ${{ matrix.value }} | tr '[:upper:]' '[:lower:]').pdf" "${{ steps.latex_file.outputs.pdf_name }}"
+          elif [ "${{ matrix.type }}" = "chapter" ]; then
+            mv "output_chapter_${{ matrix.value }}.pdf" "${{ steps.latex_file.outputs.pdf_name }}"
           fi
 
       - name: Upload PDF as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pdf-${{ matrix.subject }}
+          name: pdf-${{ matrix.type }}-${{ matrix.value }}
           path: ${{ steps.latex_file.outputs.pdf_name }}
 
   create-release:
@@ -106,10 +289,18 @@ jobs:
           if [ -f "release/old-exam-questions-all.pdf" ]; then
             mv "release/old-exam-questions-all.pdf" "release/old-exam-questions.pdf"
           fi
-          # Rename all other files to not have old-exam-questions- prefix
+          # Rename subject files to not have old-exam-questions- prefix
           cd release
-          for file in old-exam-questions-*.pdf; do
+          for file in old-exam-questions-[A-Z]*.pdf; do
             if [ -f "$file" ] && [ "$file" != "old-exam-questions.pdf" ]; then
+              new_name=$(echo "$file" | sed 's/old-exam-questions-//')
+              mv "$file" "$new_name"
+              echo "Renamed $file to $new_name"
+            fi
+          done
+          # Rename chapter files to have a simpler name
+          for file in old-exam-questions-chapter-*.pdf; do
+            if [ -f "$file" ]; then
               new_name=$(echo "$file" | sed 's/old-exam-questions-//')
               mv "$file" "$new_name"
               echo "Renamed $file to $new_name"
@@ -126,7 +317,7 @@ jobs:
           body: |
             This is a release of exam question documents built from commit ${{ github.sha }}.
             
-            PDFs are generated for each subject individually, plus one complete document with all subjects.
+            PDFs are generated for each subject individually, each chapter individually, plus one complete document with all subjects.
           files: |
             release/*.pdf
         env:
