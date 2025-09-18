@@ -107,13 +107,15 @@ jobs:
             mv "release/old-exam-questions-all.pdf" "release/old-exam-questions.pdf"
           fi
           # Rename all other files to not have old-exam-questions- prefix
-          for file in release/old-exam-questions-*.pdf; do
-            if [ "$file" != "release/old-exam-questions.pdf" ]; then
-              filename=$(basename "$file")
-              new_name=$(echo "$filename" | sed 's/old-exam-questions-//')
-              mv "$file" "release/$new_name"
+          cd release
+          for file in old-exam-questions-*.pdf; do
+            if [ -f "$file" ] && [ "$file" != "old-exam-questions.pdf" ]; then
+              new_name=$(echo "$file" | sed 's/old-exam-questions-//')
+              mv "$file" "$new_name"
+              echo "Renamed $file to $new_name"
             fi
           done
+          cd ..
           ls -la release/
 
       - name: Create GitHub Release and Upload PDFs
