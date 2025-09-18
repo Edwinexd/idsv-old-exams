@@ -109,7 +109,8 @@ jobs:
           # Rename all other files to not have old-exam-questions- prefix
           for file in release/old-exam-questions-*.pdf; do
             if [ "$file" != "release/old-exam-questions.pdf" ]; then
-              new_name=$(echo "$file" | sed 's/old-exam-questions-//')
+              filename=$(basename "$file")
+              new_name=$(echo "$filename" | sed 's/old-exam-questions-//')
               mv "$file" "release/$new_name"
             fi
           done
