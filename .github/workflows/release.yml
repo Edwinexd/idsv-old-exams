@@ -1,4 +1,4 @@
-name: Build and Release PDF
+name: Build and Release PDFs
 
 on:
   push:
@@ -11,6 +11,18 @@ permissions:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        subject: [
+          'ADR', 'AGL', 'AI', 'ALG', 'ANM', 'ASB', 'BIN', 'BIT', 'BOL', 'CAR',
+          'CCS', 'CHR', 'CME', 'CMP', 'CNP', 'COD', 'COL', 'COM', 'CRP', 'CRT',
+          'DAT', 'DBS', 'DDL', 'DEC', 'DIG', 'DLC', 'DMN', 'DRM', 'DTP', 'DTS',
+          'ERR', 'GAI', 'HEX', 'HIS', 'HTM', 'INR', 'LIG', 'LOG', 'MAL', 'MAS',
+          'MAW', 'MCL', 'MDL', 'MDN', 'MEM', 'MIS', 'NCO', 'NEN', 'NET', 'NLP',
+          'OPR', 'OPS', 'PRB', 'PRC', 'PRD', 'PRL', 'PRM', 'PRO', 'PRT', 'PTN',
+          'PTR', 'REG', 'RIT', 'RLT', 'SAM', 'SBR', 'SCR', 'SER', 'SFD', 'SSI',
+          'TDG', 'TRN', 'TST', 'TWO', 'VAR', 'VER', 'ALL'
+        ]
 
     steps:
       - name: Checkout Repository
@@ -25,13 +37,38 @@ jobs:
       - name: Install Python Dependencies
         run: pip install -r requirements.txt
 
-      - name: Run Python Compiler
-        run: python3 main.py
+      - name: Run Python Compiler for Subject
+        run: |
+          if [ "${{ matrix.subject }}" = "ALL" ]; then
+            python3 main.py
+          else
+            # Get subject name for title
+            SUBJECT_NAME=$(python3 -c "
+from models import QuestionSubject
+try:
+    subject = QuestionSubject['${{ matrix.subject }}']
+    print(f'{subject.value} Questions')
+except KeyError:
+    print('${{ matrix.subject }} Questions')
+")
+            python3 main.py --subject ${{ matrix.subject }} --title "$SUBJECT_NAME"
+          fi
+
+      - name: Determine LaTeX file
+        id: latex_file
+        run: |
+          if [ "${{ matrix.subject }}" = "ALL" ]; then
+            echo "latex_file=output.tex" >> $GITHUB_OUTPUT
+            echo "pdf_name=old-exam-questions-all.pdf" >> $GITHUB_OUTPUT
+          else
+            echo "latex_file=output_$(echo ${{ matrix.subject }} | tr '[:upper:]' '[:lower:]').tex" >> $GITHUB_OUTPUT
+            echo "pdf_name=old-exam-questions-${{ matrix.subject }}.pdf" >> $GITHUB_OUTPUT
+          fi
 
       - name: Compile LaTeX Document
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: output.tex
+          root_file: ${{ steps.latex_file.outputs.latex_file }}
 
       - name: Extract Short Commit SHA
         id: short_sha
@@ -40,16 +77,50 @@ jobs:
           echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_OUTPUT
 
       - name: Rename PDF
-        run: mv output.pdf "old-exam-questions.pdf"
+        run: |
+          if [ "${{ matrix.subject }}" = "ALL" ]; then
+            mv output.pdf "${{ steps.latex_file.outputs.pdf_name }}"
+          else
+            mv "output_$(echo ${{ matrix.subject }} | tr '[:upper:]' '[:lower:]').pdf" "${{ steps.latex_file.outputs.pdf_name }}"
+          fi
 
-      - name: Create GitHub Release and Upload PDF
+      - name: Upload PDF as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf-${{ matrix.subject }}
+          path: ${{ steps.latex_file.outputs.pdf_name }}
+
+  create-release:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract Short Commit SHA
+        id: short_sha
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: pdfs/
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          find pdfs/ -name "*.pdf" -exec cp {} release/ \;
+          ls -la release/
+
+      - name: Create GitHub Release and Upload PDFs
         uses: softprops/action-gh-release@v2
         with:
           tag_name: b-${{ steps.short_sha.outputs.SHORT_SHA }}
           release_name: b-${{ steps.short_sha.outputs.SHORT_SHA }}
           body: |
-            This is a release of the document built from commit ${{ github.sha }}.
+            This is a release of exam question documents built from commit ${{ github.sha }}.
+            
+            PDFs are generated for each subject individually, plus one complete document with all subjects.
           files: |
-            old-exam-questions.pdf
+            release/*.pdf
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

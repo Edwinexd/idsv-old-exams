@@ -1,6 +1,7 @@
+import argparse
 import logging
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 from models import Question, QuestionSubject
 import csv_parser
 from generators import registry
@@ -20,11 +21,32 @@ def encode_for_latex(text):
     
     return latex_encoder.unicode_to_latex(text)
 
-def generate_latex_document():
+def generate_latex_document(subject_filter: Optional[str] = None, custom_title: Optional[str] = None):
     """Generate the complete LaTeX document with all sections."""
     
     # Read questions from CSV with proper encoding
     questions = csv_parser.read_csv_file("question_bank/2025-08-31.csv")
+    
+    # Filter questions by subject if specified
+    if subject_filter:
+        try:
+            subject_enum = QuestionSubject[subject_filter.upper()]
+            questions = [q for q in questions if q.subject == subject_enum]
+            print(f"Filtering questions for subject: {subject_enum.value} ({len(questions)} questions)")
+        except KeyError:
+            print(f"Error: Unknown subject '{subject_filter}'. Available subjects:")
+            for subject in QuestionSubject:
+                print(f"  {subject.name}: {subject.value}")
+            return
+    
+    # Determine the title
+    if custom_title:
+        document_title = custom_title
+    elif subject_filter:
+        subject_enum = QuestionSubject[subject_filter.upper()]
+        document_title = f"{subject_enum.value} Questions"
+    else:
+        document_title = "IDSV - Old Exam Questions, 2021-present"
     
     # Read the template with UTF-8 encoding
     with open("templates/body.tex", "r", encoding="utf-8") as f:
@@ -48,7 +70,7 @@ def generate_latex_document():
     # \section{Subject} is inserted after each subject type
     for subject in QuestionSubject:
         if subject.name not in questions_mapping:
-            logging.warning(f"The subject {subject.name}:{subject.value} is not used by any questions.")
+            logging.warning("The subject %s:%s is not used by any questions.", subject.name, subject.value)
             continue
 
         title = f"\\section{{{subject.value}}}\n\n"
@@ -91,6 +113,9 @@ def generate_latex_document():
     output = output.replace("% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_ONLY>>>", english_questions_only.strip())
     output = output.replace("% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_AND_ANSWERS>>>", english_questions_and_answers.strip())
     
+    # Replace the title
+    output = output.replace("\\title{IDSV - Old Exam Questions, 2021-present}", f"\\title{{{encode_for_latex(document_title)}}}")
+    
     output = re.sub(r"(n\^\d+)", lambda m: f"${m.group(1)}$", output, flags=re.MULTILINE)
     output = re.sub(r"(\d+\^n)", lambda m: f"${m.group(1)}$", output, flags=re.MULTILINE)
     output = re.sub(r"(2\^\d+)", lambda m: f"${m.group(1)}$", output, flags=re.MULTILINE)
@@ -100,13 +125,38 @@ def generate_latex_document():
     
 
     # Write output file with UTF-8 encoding, but content is LaTeX-safe
-    with open("output.tex", "w", encoding="utf-8") as f:
+    output_filename = "output.tex"
+    if subject_filter:
+        output_filename = f"output_{subject_filter.lower()}.tex"
+    
+    with open(output_filename, "w", encoding="utf-8") as f:
         f.write(output)
     
     print(f"Generated LaTeX document with {len(questions)} questions")
-    print("Output written to: output.tex")
+    print(f"Output written to: {output_filename}")
     print("Unicode characters have been converted to LaTeX commands")
 
 
+def main():
+    """Main function to handle command line arguments and generate document."""
+    parser = argparse.ArgumentParser(description='Generate LaTeX document from question bank')
+    parser.add_argument('--subject', '-s', 
+                       help='Generate questions for a specific subject only. Use subject name from QuestionSubject enum (e.g., HIS, BIN, etc.)')
+    parser.add_argument('--title', '-t',
+                       help='Custom title for the document. If not provided, defaults to subject-specific title when filtering by subject.')
+    parser.add_argument('--list-subjects', action='store_true',
+                       help='List all available subjects and exit')
+    
+    args = parser.parse_args()
+    
+    if args.list_subjects:
+        print("Available subjects:")
+        for subject in QuestionSubject:
+            print(f"  {subject.name}: {subject.value}")
+        return
+    
+    generate_latex_document(args.subject, args.title)
+
+
 if __name__ == "__main__":
-    generate_latex_document()
+    main()

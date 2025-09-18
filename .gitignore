@@ -14,7 +14,8 @@
 .vscode/settings.json
 output.tex
 .env
-
+output_*.tex
+.DS_Store
 
 __pycache__/
 venv/
