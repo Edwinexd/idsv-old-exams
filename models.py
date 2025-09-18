@@ -100,6 +100,7 @@ class QuestionSubject(Enum):
     CRT = "Cryptography"
     ERR = "Errors"
     VAR = "Variables"
+    GAI = "Generative AI"
 
 # question - The question text
 # answer - The answer text
