@@ -42,15 +42,8 @@ jobs:
           if [ "${{ matrix.subject }}" = "ALL" ]; then
             python3 main.py
           else
-            # Get subject name for title
-            SUBJECT_NAME=$(python3 -c "
-from models import QuestionSubject
-try:
-    subject = QuestionSubject['${{ matrix.subject }}']
-    print(f'{subject.value} Questions')
-except KeyError:
-    print('${{ matrix.subject }} Questions')
-")
+            # Get subject name for title using helper script
+            SUBJECT_NAME=$(python3 .github/workflows/get_subject_title.py ${{ matrix.subject }})
             python3 main.py --subject ${{ matrix.subject }} --title "$SUBJECT_NAME"
           fi
 
