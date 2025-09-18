@@ -102,6 +102,17 @@ jobs:
         run: |
           mkdir -p release
           find pdfs/ -name "*.pdf" -exec cp {} release/ \;
+          # Rename the ALL file to a simpler name
+          if [ -f "release/old-exam-questions-all.pdf" ]; then
+            mv "release/old-exam-questions-all.pdf" "release/old-exam-questions.pdf"
+          fi
+          # Rename all other files to not have old-exam-questions- prefix
+          for file in release/old-exam-questions-*.pdf; do
+            if [ "$file" != "release/old-exam-questions.pdf" ]; then
+              new_name=$(echo "$file" | sed 's/old-exam-questions-//')
+              mv "$file" "release/$new_name"
+            fi
+          done
           ls -la release/
 
       - name: Create GitHub Release and Upload PDFs
