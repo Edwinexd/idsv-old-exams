@@ -124,6 +124,10 @@ class Generator(abc.ABC):
     def to_latex(self, question: "Question", lang: LANGUAGE_CODE, with_answer: bool = False) -> str:
         ...
 
+    def to_moodle_xml(self, question: "Question", lang: LANGUAGE_CODE) -> str:
+        """Convert question to Moodle XML format. Default implementation for unsupported types."""
+        return f"<!-- Question {question.id} of type {question.type.value} not supported for Moodle XML -->"
+
 
 class Question(BaseModel):
     id: int

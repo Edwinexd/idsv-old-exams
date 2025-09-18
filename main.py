@@ -1,10 +1,11 @@
 import argparse
 import logging
 import re
+import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
 from models import Question, QuestionSubject
 import csv_parser
-from generators import registry
+from generators import registry, moodle_xml_registry
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 
 
@@ -146,15 +147,111 @@ def generate_latex_document(subject_filter: Optional[str] = None, chapter_filter
     print("Unicode characters have been converted to LaTeX commands")
 
 
+def generate_moodle_xml(subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None):
+    """Generate Moodle XML quiz format from question bank with bilingual support."""
+    
+    # Read questions from CSV with proper encoding
+    questions = csv_parser.read_csv_file("question_bank/2025-08-31.csv")
+    
+    # Filter questions by subject if specified
+    if subject_filter:
+        try:
+            subject_enum = QuestionSubject[subject_filter.upper()]
+            questions = [q for q in questions if q.subject == subject_enum]
+            print(f"Filtering questions for subject: {subject_enum.value} ({len(questions)} questions)")
+        except KeyError:
+            print(f"Error: Unknown subject '{subject_filter}'. Available subjects:")
+            for subject in QuestionSubject:
+                print(f"  {subject.name}: {subject.value}")
+            return
+    
+    # Filter questions by chapter if specified
+    if chapter_filter is not None:
+        questions = [q for q in questions if q.chapter == chapter_filter]
+        print(f"Filtering questions for chapter: {chapter_filter} ({len(questions)} questions)")
+    
+    # Create the XML structure manually
+    xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>', '<quiz>']
+    
+    # Map questions by subject, order by id
+    questions_mapping: Dict[str, List[Question]] = {}
+    for question in questions:
+        questions_mapping.setdefault(question.subject.name, [])
+        questions_mapping[question.subject.name].append(question)
+
+    for values in questions_mapping.values():
+        values.sort(key=lambda q: q.id)
+    
+    # Add category elements for each subject
+    for subject in QuestionSubject:
+        if subject.name not in questions_mapping:
+            logging.warning("The subject %s:%s is not used by any questions.", subject.name, subject.value)
+            continue
+
+        # Add category element
+        xml_parts.append('  <question type="category">')
+        xml_parts.append('    <category>')
+        xml_parts.append(f'      <text>$course$/{subject.value}</text>')
+        xml_parts.append('    </category>')
+        xml_parts.append('  </question>')
+        
+        # Add questions for this subject
+        for question in questions_mapping[subject.name]:
+            # Check if question has content in at least one language
+            if not question.content:
+                continue
+                
+            try:
+                # Get the appropriate Moodle XML generator
+                generator = moodle_xml_registry.get_generator(question.type)
+                xml_output = generator.to_moodle_xml(question, "en")  # Language parameter not used anymore
+                
+                # Add the XML directly without parsing
+                if xml_output and not xml_output.startswith("<!--"):
+                    # Indent each line of the question XML
+                    question_lines = xml_output.split('\n')
+                    indented_lines = ['  ' + line if line.strip() else line for line in question_lines]
+                    xml_parts.extend(indented_lines)
+                else:
+                    # Add comment for unsupported question types
+                    xml_parts.append(f'  <!-- Question {question.id} of type {question.type.value} not supported -->')
+                    
+            except KeyError:
+                # Question type not supported in Moodle XML registry
+                xml_parts.append(f'  <!-- Question {question.id} of type {question.type.value} not implemented for Moodle XML -->')
+    
+    xml_parts.append('</quiz>')
+    
+    # Join all parts and write to file
+    final_xml = '\n'.join(xml_parts)
+    
+    # Determine output filename
+    output_filename = "moodle_quiz.xml"
+    if subject_filter:
+        output_filename = f"moodle_quiz_{subject_filter.lower()}.xml"
+    elif chapter_filter is not None:
+        output_filename = f"moodle_quiz_chapter_{chapter_filter}.xml"
+    
+    # Write XML file directly
+    with open(output_filename, "w", encoding="utf-8") as f:
+        f.write(final_xml)
+    
+    print(f"Generated Moodle XML quiz with {len(questions)} questions")
+    print(f"Output written to: {output_filename}")
+    print("Both English and Swedish content included when available")
+
+
 def main():
     """Main function to handle command line arguments and generate document."""
-    parser = argparse.ArgumentParser(description='Generate LaTeX document from question bank')
+    parser = argparse.ArgumentParser(description='Generate LaTeX document or Moodle XML quiz from question bank')
     parser.add_argument('--subject', '-s', 
                        help='Generate questions for a specific subject only. Use subject name from QuestionSubject enum (e.g., HIS, BIN, etc.)')
     parser.add_argument('--chapter', '-c', type=int,
                        help='Generate questions for a specific chapter only. Use chapter number (e.g., 0, 1, 2, etc.)')
     parser.add_argument('--title', '-t',
                        help='Custom title for the document. If not provided, defaults to subject-specific title when filtering by subject.')
+    parser.add_argument('--format', '-f', choices=['latex', 'moodle'], default='latex',
+                       help='Output format: "latex" for LaTeX document (default) or "moodle" for Moodle XML quiz')
     parser.add_argument('--list-subjects', action='store_true',
                        help='List all available subjects and exit')
     
@@ -170,7 +267,10 @@ def main():
         print("Error: Cannot specify both --subject and --chapter filters at the same time")
         return
     
-    generate_latex_document(args.subject, args.chapter, args.title)
+    if args.format == 'moodle':
+        generate_moodle_xml(args.subject, args.chapter)
+    else:
+        generate_latex_document(args.subject, args.chapter, args.title)
 
 
 if __name__ == "__main__":

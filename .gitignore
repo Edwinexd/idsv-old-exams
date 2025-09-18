@@ -16,6 +16,6 @@ output.tex
 .env
 output_*.tex
 .DS_Store
-
+moodle_*.xml
 __pycache__/
 venv/
