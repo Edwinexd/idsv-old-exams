@@ -17,7 +17,7 @@ class CSVQuestionParser:
     
     def parse_csv_content(self, csv_content: str) -> List[Question]:
         """Parse CSV content string and return a list of Question objects."""
-        reader = csv.DictReader(csv_content.strip().split('\n'), escapechar='\\')
+        reader = csv.DictReader(csv_content.strip().split('\n'))
         
         for row in reader:
             question = self._parse_row(row)
