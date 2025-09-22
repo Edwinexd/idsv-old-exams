@@ -310,8 +310,11 @@ jobs:
           release_name: b-${{ steps.short_sha.outputs.SHORT_SHA }}
           body: |
             This is a release of exam question documents built from commit ${{ github.sha }}.
-            
-            PDFs are generated for each subject individually, each chapter individually, plus one complete document with all subjects.
+
+            This release includes the following PDFs:
+            - `old-exam-questions.pdf`: A single document containing all subjects.
+            - `[SUBJECT].pdf`: A separate document for each individual subject (e.g., `AI.pdf`, `DBS.pdf`).
+            - `chapter-[X].pdf`: A separate document for each individual chapter (e.g., `chapter-0.pdf`, `chapter-1.pdf`).
           files: |
             release/*.pdf
         env:
