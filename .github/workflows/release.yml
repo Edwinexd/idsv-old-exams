@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-default
     strategy:
       matrix:
         include:
@@ -268,7 +268,7 @@ jobs:
 
   create-release:
     needs: build-and-release
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-default
     steps:
       - name: Extract Short Commit SHA
         id: short_sha
