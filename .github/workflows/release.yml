@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-and-release:
-    runs-on: namespace-profile-default
+    runs-on: namespace-profile-linux-sm-docker
     strategy:
       matrix:
         include:
@@ -243,12 +243,6 @@ jobs:
         uses: xu-cheng/latex-action@v3
         with:
           root_file: ${{ steps.latex_file.outputs.latex_file }}
-
-      - name: Extract Short Commit SHA
-        id: short_sha
-        run: |
-          SHORT_SHA=${GITHUB_SHA::7}
-          echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_OUTPUT
 
       - name: Rename PDF
         run: |
