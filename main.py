@@ -44,6 +44,13 @@ def generate_latex_document(subject_filter: Optional[str] = None, chapter_filter
         questions = [q for q in questions if q.chapter == chapter_filter]
         print(f"Filtering questions for chapter: {chapter_filter} ({len(questions)} questions)")
     
+    # Check if any questions reference machineForProblemStatements
+    has_machine_references = any(
+        'machineForProblemStatements' in str(q.content.get('sv', '')) or 
+        'machineForProblemStatements' in str(q.content.get('en', ''))
+        for q in questions
+    )
+    
     # Determine the title
     if custom_title:
         document_title = custom_title
@@ -120,6 +127,14 @@ def generate_latex_document(subject_filter: Optional[str] = None, chapter_filter
     output = output.replace("% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_ONLY>>>", english_questions_only.strip())
     output = output.replace("% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_AND_ANSWERS>>>", english_questions_and_answers.strip())
     
+    # Conditionally include machine appendix based on whether questions reference it
+    if not has_machine_references:
+        # Remove the machine appendix chapters
+        # Find and remove the appendix section
+        appendix_pattern = r'\\appendix.*?\\printbibliography'
+        replacement = r'\\printbibliography'
+        output = re.sub(appendix_pattern, replacement, output, flags=re.DOTALL)
+    
     # Replace the title
     output = output.replace("\\title{IDSV - Old Exam Questions, 2021-present}", f"\\title{{{encode_for_latex(document_title)}}}")
     
@@ -142,6 +157,10 @@ def generate_latex_document(subject_filter: Optional[str] = None, chapter_filter
         f.write(output)
     
     print(f"Generated LaTeX document with {len(questions)} questions")
+    if has_machine_references:
+        print("Machine appendix included (questions reference machineForProblemStatements)")
+    else:
+        print("Machine appendix excluded (no questions reference machineForProblemStatements)")
     print(f"Output written to: {output_filename}")
     print("Unicode characters have been converted to LaTeX commands")
 
