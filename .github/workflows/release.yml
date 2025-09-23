@@ -215,6 +215,8 @@ jobs:
         run: |
           if [ "${{ matrix.type }}" = "all" ]; then
             python3 main.py
+            # Also generate Moodle quiz bank for the complete compilation
+            python3 main.py --format moodle --lang-order sv en
           elif [ "${{ matrix.type }}" = "subject" ]; then
             # Get subject name for title using helper script
             SUBJECT_NAME=$(python3 .github/workflows/get_subject_title.py ${{ matrix.value }})
@@ -260,6 +262,13 @@ jobs:
           name: pdf-${{ matrix.type }}-${{ matrix.value }}
           path: ${{ steps.latex_file.outputs.pdf_name }}
 
+      - name: Upload Moodle XML as Artifact (for all compilation only)
+        if: matrix.type == 'all'
+        uses: actions/upload-artifact@v4
+        with:
+          name: moodle-xml-all
+          path: moodle_quiz.xml
+
   create-release:
     needs: build-and-release
     runs-on: ubuntu-latest
@@ -279,6 +288,11 @@ jobs:
         run: |
           mkdir -p release
           find pdfs/ -name "*.pdf" -exec cp {} release/ \;
+          # Copy Moodle XML file if it exists
+          if [ -d "moodle-xml-all" ] && [ -f "moodle-xml-all/moodle_quiz.xml" ]; then
+            cp moodle-xml-all/moodle_quiz.xml release/moodle_quiz.xml
+            echo "Added Moodle quiz XML to release"
+          fi
           # Rename the ALL file to a simpler name
           if [ -f "release/old-exam-questions-all.pdf" ]; then
             mv "release/old-exam-questions-all.pdf" "release/old-exam-questions.pdf"
@@ -315,7 +329,11 @@ jobs:
             - `old-exam-questions.pdf`: A single document containing all subjects.
             - `[SUBJECT].pdf`: A separate document for each individual subject (e.g., `AI.pdf`, `DBS.pdf`).
             - `chapter-[X].pdf`: A separate document for each individual chapter (e.g., `chapter-0.pdf`, `chapter-1.pdf`).
+            
+            This release also includes:
+            - `moodle_quiz.xml`: A Moodle quiz bank export containing all questions in Swedish-English order for import into Moodle.
           files: |
             release/*.pdf
+            release/*.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
