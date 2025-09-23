@@ -282,15 +282,15 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: pdfs/
+          path: files/
 
       - name: Prepare release files
         run: |
           mkdir -p release
-          find pdfs/ -name "*.pdf" -exec cp {} release/ \;
+          find files/ -name "*.pdf" -exec cp {} release/ \;
           # Copy Moodle XML file if it exists
-          if [ -d "moodle-xml-all" ] && [ -f "moodle-xml-all/moodle_quiz.xml" ]; then
-            cp moodle-xml-all/moodle_quiz.xml release/moodle_quiz.xml
+          if [ -d "files" ] && [ -f "files/moodle_quiz.xml" ]; then
+            cp files/moodle_quiz.xml release/moodle_quiz.xml
             echo "Added Moodle quiz XML to release"
           fi
           # Rename the ALL file to a simpler name
