@@ -124,7 +124,8 @@ class Generator(abc.ABC):
     def to_latex(self, question: "Question", lang: LANGUAGE_CODE, with_answer: bool = False) -> str:
         ...
 
-    def to_moodle_xml(self, question: "Question", lang: LANGUAGE_CODE) -> str:
+    # pylint: disable=unused-argument
+    def to_moodle_xml(self, question: "Question", lang_order: list[str] | None = None) -> str:  
         """Convert question to Moodle XML format. Default implementation for unsupported types."""
         return f"<!-- Question {question.id} of type {question.type.value} not supported for Moodle XML -->"
 
@@ -136,9 +137,3 @@ class Question(BaseModel):
     subject: QuestionSubject
     content: Dict[LANGUAGE_CODE, QuestionContent]
 
-    def to_latex(self, lang: LANGUAGE_CODE, with_answer: bool = False) -> str:
-        content = self.content.get(lang)
-        if not content:
-            return "Content not available in the specified language."
-
-        return ""

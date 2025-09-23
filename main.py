@@ -1,7 +1,6 @@
 import argparse
 import logging
 import re
-import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
 from models import Question, QuestionSubject
 import csv_parser
@@ -147,8 +146,16 @@ def generate_latex_document(subject_filter: Optional[str] = None, chapter_filter
     print("Unicode characters have been converted to LaTeX commands")
 
 
-def generate_moodle_xml(subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None):
-    """Generate Moodle XML quiz format from question bank with bilingual support."""
+def generate_moodle_xml(subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, lang_order: Optional[List[str]] = None):
+    """Generate Moodle XML quiz format from question bank with bilingual support.
+    
+    Args:
+        subject_filter: Filter by subject code (e.g., 'HIS')
+        chapter_filter: Filter by chapter number
+        lang_order: Language order for alternatives (default: ['sv', 'en'])
+    """
+    if lang_order is None:
+        lang_order = ['sv', 'en']
     
     # Read questions from CSV with proper encoding
     questions = csv_parser.read_csv_file("question_bank/2025-08-31.csv")
@@ -204,7 +211,7 @@ def generate_moodle_xml(subject_filter: Optional[str] = None, chapter_filter: Op
             try:
                 # Get the appropriate Moodle XML generator
                 generator = moodle_xml_registry.get_generator(question.type)
-                xml_output = generator.to_moodle_xml(question, "en")  # Language parameter not used anymore
+                xml_output = generator.to_moodle_xml(question, lang_order)
                 
                 # Add the XML directly without parsing
                 if xml_output and not xml_output.startswith("<!--"):
@@ -252,6 +259,8 @@ def main():
                        help='Custom title for the document. If not provided, defaults to subject-specific title when filtering by subject.')
     parser.add_argument('--format', '-f', choices=['latex', 'moodle'], default='latex',
                        help='Output format: "latex" for LaTeX document (default) or "moodle" for Moodle XML quiz')
+    parser.add_argument('--lang-order', '-l', nargs='+', default=['sv', 'en'],
+                       help='Language order for answer alternatives in Moodle XML (default: sv en)')
     parser.add_argument('--list-subjects', action='store_true',
                        help='List all available subjects and exit')
     
@@ -268,7 +277,7 @@ def main():
         return
     
     if args.format == 'moodle':
-        generate_moodle_xml(args.subject, args.chapter)
+        generate_moodle_xml(args.subject, args.chapter, args.lang_order)
     else:
         generate_latex_document(args.subject, args.chapter, args.title)
 
