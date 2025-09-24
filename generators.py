@@ -279,24 +279,30 @@ def _create_question_manually(question_id, subject_value, question_type, questio
 
 
 # Moodle XML Generator Classes
-def _get_bilingual_text(question: Question, field: str) -> str:
-    """Get text in both languages if available, combining English and Swedish with proper HTML formatting."""
+def _get_bilingual_text(question: Question, field: str, lang_order: list | None = None) -> str:
+    """Get text in both languages if available, combining them with proper HTML formatting.
+
+    Args:
+        question: The question object
+        field: The field to extract (e.g., 'question', 'answer')
+        lang_order: List of language codes in order of preference (default: ['en', 'sv'])
+    """
+    if lang_order is None:
+        lang_order = ['en', 'sv']
+
     texts = []
-    
-    # Add English text if available
-    if 'en' in question.content:
-        en_content = question.content['en']
-        en_text = getattr(en_content, field, None)
-        if en_text:
-            texts.append(f"<p>{escape(en_text)}</p>")
-    
-    # Add Swedish text if available
-    if 'sv' in question.content:
-        sv_content = question.content['sv']
-        sv_text = getattr(sv_content, field, None)
-        if sv_text:
-            texts.append(f"<p><em>{escape(sv_text)}</em></p>")
-    
+
+    for i, lang in enumerate(lang_order):
+        if lang in question.content:
+            content = question.content[lang]
+            text = getattr(content, field, None)
+            if text:
+                # First language is normal, subsequent languages are italicized
+                if i == 0:
+                    texts.append(f"<p>{escape(text)}</p>")
+                else:
+                    texts.append(f"<p><em>{escape(text)}</em></p>")
+
     # Join the paragraphs
     if texts:
         return "\n        ".join(texts)
@@ -376,22 +382,31 @@ def _get_bilingual_answers(question: Question, lang_order: list | None = None) -
     return unique_answers
 
 
-def _get_bilingual_answer_feedback(question: Question) -> str:
-    """Get answer text formatted as feedback with labels for both languages."""
+def _get_bilingual_answer_feedback(question: Question, lang_order: list | None = None) -> str:
+    """Get answer text formatted as feedback with labels for both languages.
+
+    Args:
+        question: The question object
+        lang_order: List of language codes in order of preference (default: ['en', 'sv'])
+    """
+    if lang_order is None:
+        lang_order = ['en', 'sv']
+
     feedback_parts = []
-    
-    # Add English answer if available
-    if 'en' in question.content:
-        en_content = question.content['en']
-        if en_content.answer:
-            feedback_parts.append(f"<p><strong>Expected answer:</strong> {escape(en_content.answer)}</p>")
-    
-    # Add Swedish answer if available
-    if 'sv' in question.content:
-        sv_content = question.content['sv']
-        if sv_content.answer:
-            feedback_parts.append(f"<p><strong>Förväntat svar:</strong> {escape(sv_content.answer)}</p>")
-    
+
+    # Language-specific labels
+    labels = {
+        'en': 'Expected answer:',
+        'sv': 'Förväntat svar:'
+    }
+
+    for lang in lang_order:
+        if lang in question.content:
+            content = question.content[lang]
+            if content.answer:
+                label = labels.get(lang, 'Answer:')
+                feedback_parts.append(f"<p><strong>{label}</strong> {escape(content.answer)}</p>")
+
     # Join the paragraphs
     if feedback_parts:
         return "\n        ".join(feedback_parts)
@@ -401,11 +416,11 @@ def _get_bilingual_answer_feedback(question: Question) -> str:
 
 class MoodleXMLShortAnswerGenerator(ShortAnswerGenerator):
     """Generator for short answer questions in Moodle XML format"""
-    
+
     def to_moodle_xml(self, question: Question, lang_order: list[str] | None = None) -> str:
         # Use bilingual text instead of single language
-        question_text = _get_bilingual_text(question, 'question')
-        answer_text = _get_bilingual_text(question, 'answer')
+        question_text = _get_bilingual_text(question, 'question', lang_order)
+        answer_text = _get_bilingual_text(question, 'answer', lang_order)
         
         if not question_text:
             return f"<!-- Question {question.id} has no content -->"
@@ -452,10 +467,10 @@ class MoodleXMLShortAnswerGenerator(ShortAnswerGenerator):
 
 class MoodleXMLEssayGenerator(EssayGenerator):
     """Generator for essay questions in Moodle XML format"""
-    
+
     def to_moodle_xml(self, question: Question, lang_order: list[str] | None = None) -> str:
-        question_text = _get_bilingual_text(question, 'question')
-        answer_feedback = _get_bilingual_answer_feedback(question)
+        question_text = _get_bilingual_text(question, 'question', lang_order)
+        answer_feedback = _get_bilingual_answer_feedback(question, lang_order)
         
         if not question_text:
             return f"<!-- Question {question.id} has no content -->"
@@ -471,12 +486,12 @@ class MoodleXMLEssayGenerator(EssayGenerator):
 
 class MoodleXMLMultipleChoiceGenerator(MultipleChoiceGenerator):
     """Generator for multiple choice questions in Moodle XML format"""
-    
+
     def to_moodle_xml(self, question: Question, lang_order: list[str] | None = None) -> str:
         if lang_order is None:
             lang_order = ['sv', 'en']
-            
-        question_text = _get_bilingual_text(question, 'question')
+
+        question_text = _get_bilingual_text(question, 'question', lang_order)
         alternatives = _get_bilingual_alternatives(question, lang_order)
         correct_answers = _get_bilingual_answers(question, lang_order)
         
@@ -540,12 +555,12 @@ class MoodleXMLMultipleChoiceGenerator(MultipleChoiceGenerator):
 
 class MoodleXMLSingleChoiceGenerator(SingleChoiceGenerator):
     """Generator for single choice questions in Moodle XML format"""
-    
+
     def to_moodle_xml(self, question: Question, lang_order: list[str] | None = None) -> str:
         if lang_order is None:
             lang_order = ['sv', 'en']
-            
-        question_text = _get_bilingual_text(question, 'question')
+
+        question_text = _get_bilingual_text(question, 'question', lang_order)
         alternatives = _get_bilingual_alternatives(question, lang_order)
         correct_answers = _get_bilingual_answers(question, lang_order)
         
@@ -609,10 +624,10 @@ class MoodleXMLSingleChoiceGenerator(SingleChoiceGenerator):
 
 class MoodleXMLNumberGenerator(NumberGenerator):
     """Generator for numerical questions in Moodle XML format"""
-    
+
     def to_moodle_xml(self, question: Question, lang_order: list[str] | None = None) -> str:
-        question_text = _get_bilingual_text(question, 'question')
-        answer_text = _get_bilingual_text(question, 'answer')
+        question_text = _get_bilingual_text(question, 'question', lang_order)
+        answer_text = _get_bilingual_text(question, 'answer', lang_order)
         
         if not question_text:
             return f"<!-- Question {question.id} has no content -->"
@@ -692,7 +707,6 @@ class MoodleXMLMultiQuestionGenerator(MultiQuestionGenerator):
     
     def to_moodle_xml(self, question: Question, lang_order: list[str] | None = None) -> str:
         if lang_order is None:
-            lang_order = ['sv', 'en']
             lang_order = ['sv', 'en']
         
         # Check if question has content in any language

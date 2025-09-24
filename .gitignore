@@ -19,3 +19,4 @@ output_*.tex
 moodle_*.xml
 __pycache__/
 venv/
+private_banks/

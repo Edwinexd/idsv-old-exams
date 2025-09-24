@@ -21,11 +21,11 @@ def encode_for_latex(text):
     
     return latex_encoder.unicode_to_latex(text)
 
-def generate_latex_document(subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, custom_title: Optional[str] = None):
+def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, custom_title: Optional[str] = None):
     """Generate the complete LaTeX document with all sections."""
     
     # Read questions from CSV with proper encoding
-    questions = csv_parser.read_csv_file("question_bank/2025-08-31.csv")
+    questions = csv_parser.read_csv_file(csv_file)
     
     # Filter questions by subject if specified
     if subject_filter:
@@ -165,7 +165,7 @@ def generate_latex_document(subject_filter: Optional[str] = None, chapter_filter
     print("Unicode characters have been converted to LaTeX commands")
 
 
-def generate_moodle_xml(subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, lang_order: Optional[List[str]] = None):
+def generate_moodle_xml(csv_file: str, subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, lang_order: Optional[List[str]] = None):
     """Generate Moodle XML quiz format from question bank with bilingual support.
     
     Args:
@@ -177,7 +177,7 @@ def generate_moodle_xml(subject_filter: Optional[str] = None, chapter_filter: Op
         lang_order = ['sv', 'en']
     
     # Read questions from CSV with proper encoding
-    questions = csv_parser.read_csv_file("question_bank/2025-08-31.csv")
+    questions = csv_parser.read_csv_file(csv_file)
     
     # Filter questions by subject if specified
     if subject_filter:
@@ -282,6 +282,8 @@ def main():
                        help='Language order for answer alternatives in Moodle XML (default: sv en)')
     parser.add_argument('--list-subjects', action='store_true',
                        help='List all available subjects and exit')
+    parser.add_argument('--csv-file', '-i', default='question_bank/2025-08-31.csv',
+                       help='CSV file to process (default: question_bank/2025-08-31.csv)')
     
     args = parser.parse_args()
     
@@ -296,9 +298,9 @@ def main():
         return
     
     if args.format == 'moodle':
-        generate_moodle_xml(args.subject, args.chapter, args.lang_order)
+        generate_moodle_xml(args.csv_file, args.subject, args.chapter, args.lang_order)
     else:
-        generate_latex_document(args.subject, args.chapter, args.title)
+        generate_latex_document(args.csv_file, args.subject, args.chapter, args.title)
 
 
 if __name__ == "__main__":
