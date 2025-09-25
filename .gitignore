@@ -17,6 +17,7 @@ output.tex
 output_*.tex
 .DS_Store
 moodle_*.xml
+*quiz.xml
 __pycache__/
 venv/
 private_banks/

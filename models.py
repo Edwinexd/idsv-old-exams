@@ -136,4 +136,5 @@ class Question(BaseModel):
     type: QuestionType
     subject: QuestionSubject
     content: Dict[LANGUAGE_CODE, QuestionContent]
+    moodle_name_override: str | None = None
 

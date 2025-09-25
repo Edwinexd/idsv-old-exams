@@ -193,12 +193,13 @@ def _create_xml_with_cdata(question_elem, question_text, answer_feedback=None):
     return base_xml
 
 
-def _create_question_manually(question_id, subject_value, question_type, question_text, answer_feedback=None, **kwargs):
+def _create_question_manually(question_id, subject_value, question_type, question_text, answer_feedback=None, moodle_name_override=None, **kwargs):
     """Manually create XML string to avoid ElementTree escaping issues."""
-    
+
     xml_parts = [f'<question type="{question_type}">']
     xml_parts.append(f'  <name>')
-    xml_parts.append(f'    <text>Question {question_id} - {subject_value}</text>')
+    name_text = moodle_name_override or f"Question {question_id} - {subject_value}"
+    xml_parts.append(f'    <text>{name_text}</text>')
     xml_parts.append(f'  </name>')
     
     # Question text with CDATA
@@ -279,13 +280,14 @@ def _create_question_manually(question_id, subject_value, question_type, questio
 
 
 # Moodle XML Generator Classes
-def _get_bilingual_text(question: Question, field: str, lang_order: list | None = None) -> str:
+def _get_bilingual_text(question: Question, field: str, lang_order: list | None = None, escape_html: bool = False) -> str:
     """Get text in both languages if available, combining them with proper HTML formatting.
 
     Args:
         question: The question object
         field: The field to extract (e.g., 'question', 'answer')
         lang_order: List of language codes in order of preference (default: ['en', 'sv'])
+        escape_html: Whether to escape HTML entities (False when using CDATA)
     """
     if lang_order is None:
         lang_order = ['en', 'sv']
@@ -297,11 +299,13 @@ def _get_bilingual_text(question: Question, field: str, lang_order: list | None 
             content = question.content[lang]
             text = getattr(content, field, None)
             if text:
+                # Optionally escape HTML
+                display_text = escape(text) if escape_html else text
                 # First language is normal, subsequent languages are italicized
                 if i == 0:
-                    texts.append(f"<p>{escape(text)}</p>")
+                    texts.append(f"<p>{display_text}</p>")
                 else:
-                    texts.append(f"<p><em>{escape(text)}</em></p>")
+                    texts.append(f"<p><em>{display_text}</em></p>")
 
     # Join the paragraphs
     if texts:
@@ -382,12 +386,13 @@ def _get_bilingual_answers(question: Question, lang_order: list | None = None) -
     return unique_answers
 
 
-def _get_bilingual_answer_feedback(question: Question, lang_order: list | None = None) -> str:
+def _get_bilingual_answer_feedback(question: Question, lang_order: list | None = None, escape_html: bool = False) -> str:
     """Get answer text formatted as feedback with labels for both languages.
 
     Args:
         question: The question object
         lang_order: List of language codes in order of preference (default: ['en', 'sv'])
+        escape_html: Whether to escape HTML entities (False when using CDATA)
     """
     if lang_order is None:
         lang_order = ['en', 'sv']
@@ -405,7 +410,8 @@ def _get_bilingual_answer_feedback(question: Question, lang_order: list | None =
             content = question.content[lang]
             if content.answer:
                 label = labels.get(lang, 'Answer:')
-                feedback_parts.append(f"<p><strong>{label}</strong> {escape(content.answer)}</p>")
+                answer_text = escape(content.answer) if escape_html else content.answer
+                feedback_parts.append(f"<p><strong>{label}</strong> {answer_text}</p>")
 
     # Join the paragraphs
     if feedback_parts:
@@ -431,7 +437,7 @@ class MoodleXMLShortAnswerGenerator(ShortAnswerGenerator):
         # Question name
         name_elem = ET.SubElement(question_elem, "name")
         name_text_elem = ET.SubElement(name_elem, "text")
-        name_text_elem.text = f"Question {question.id} - {question.subject.value}"
+        name_text_elem.text = question.moodle_name_override or f"Question {question.id} - {question.subject.value}"
         
         # Question text with CDATA
         questiontext_elem = ET.SubElement(question_elem, "questiontext", format="html")
@@ -476,11 +482,12 @@ class MoodleXMLEssayGenerator(EssayGenerator):
             return f"<!-- Question {question.id} has no content -->"
         
         return _create_question_manually(
-            question.id, 
-            question.subject.value, 
-            "essay", 
-            question_text, 
-            answer_feedback
+            question.id,
+            question.subject.value,
+            "essay",
+            question_text,
+            answer_feedback,
+            moodle_name_override=question.moodle_name_override
         )
 
 
@@ -491,66 +498,27 @@ class MoodleXMLMultipleChoiceGenerator(MultipleChoiceGenerator):
         if lang_order is None:
             lang_order = ['sv', 'en']
 
-        question_text = _get_bilingual_text(question, 'question', lang_order)
+        question_text = _get_bilingual_text(question, 'question', lang_order, escape_html=False)
         alternatives = _get_bilingual_alternatives(question, lang_order)
         correct_answers = _get_bilingual_answers(question, lang_order)
-        
+
         if not question_text:
             return f"<!-- Question {question.id} has no content -->"
-        
+
         if not alternatives:
             return f"<!-- Question {question.id} has no answer alternatives -->"
-        
-        # Create question element
-        question_elem = ET.Element("question", type="multichoice")
-        
-        # Question name
-        name_elem = ET.SubElement(question_elem, "name")
-        name_text_elem = ET.SubElement(name_elem, "text")
-        name_text_elem.text = f"Question {question.id} - {question.subject.value}"
-        
-        # Question text with CDATA
-        questiontext_elem = ET.SubElement(question_elem, "questiontext", format="html")
-        questiontext_text_elem = ET.SubElement(questiontext_elem, "text")
-        questiontext_text_elem.text = "PLACEHOLDER_QUESTIONTEXT"
-        
-        # Default grade
-        defaultgrade_elem = ET.SubElement(question_elem, "defaultgrade")
-        defaultgrade_elem.text = "1"
-        
-        # General feedback
-        generalfeedback_elem = ET.SubElement(question_elem, "generalfeedback", format="html")
-        generalfeedback_text_elem = ET.SubElement(generalfeedback_elem, "text")
-        generalfeedback_text_elem.text = ""
-        
-        # Single or multiple answers
-        single_elem = ET.SubElement(question_elem, "single")
-        single_elem.text = "false"  # Allow multiple correct answers
-        
-        # Shuffle answers
-        shuffleanswers_elem = ET.SubElement(question_elem, "shuffleanswers")
-        shuffleanswers_elem.text = "true"
-        
-        # Add answer alternatives
-        for alternative in alternatives:
-            answer_elem = ET.SubElement(question_elem, "answer")
-            
-            # Determine if this is a correct answer - improved matching
-            is_correct = any(
-                correct.strip().lower() == alternative.strip().lower() 
-                for correct in correct_answers
-            )
-            answer_elem.set("fraction", "100" if is_correct else "0")
-            
-            answer_text_elem = ET.SubElement(answer_elem, "text")
-            answer_text_elem.text = escape(alternative)
-            
-            # Feedback
-            feedback_elem = ET.SubElement(answer_elem, "feedback", format="html")
-            feedback_text_elem = ET.SubElement(feedback_elem, "text")
-            feedback_text_elem.text = ""
-        
-        return _create_xml_with_cdata(question_elem, question_text)
+
+        return _create_question_manually(
+            question.id,
+            question.subject.value,
+            "multichoice",
+            question_text,
+            None,  # No general feedback for now
+            moodle_name_override=question.moodle_name_override,
+            single="false",  # Allow multiple correct answers
+            alternatives=alternatives,
+            correct_answers=correct_answers
+        )
 
 
 class MoodleXMLSingleChoiceGenerator(SingleChoiceGenerator):
@@ -560,66 +528,27 @@ class MoodleXMLSingleChoiceGenerator(SingleChoiceGenerator):
         if lang_order is None:
             lang_order = ['sv', 'en']
 
-        question_text = _get_bilingual_text(question, 'question', lang_order)
+        question_text = _get_bilingual_text(question, 'question', lang_order, escape_html=False)
         alternatives = _get_bilingual_alternatives(question, lang_order)
         correct_answers = _get_bilingual_answers(question, lang_order)
-        
+
         if not question_text:
             return f"<!-- Question {question.id} has no content -->"
-        
+
         if not alternatives:
             return f"<!-- Question {question.id} has no answer alternatives -->"
-        
-        # Create question element
-        question_elem = ET.Element("question", type="multichoice")
-        
-        # Question name
-        name_elem = ET.SubElement(question_elem, "name")
-        name_text_elem = ET.SubElement(name_elem, "text")
-        name_text_elem.text = f"Question {question.id} - {question.subject.value}"
-        
-        # Question text with CDATA
-        questiontext_elem = ET.SubElement(question_elem, "questiontext", format="html")
-        questiontext_text_elem = ET.SubElement(questiontext_elem, "text")
-        questiontext_text_elem.text = "PLACEHOLDER_QUESTIONTEXT"
-        
-        # Default grade
-        defaultgrade_elem = ET.SubElement(question_elem, "defaultgrade")
-        defaultgrade_elem.text = "1"
-        
-        # General feedback
-        generalfeedback_elem = ET.SubElement(question_elem, "generalfeedback", format="html")
-        generalfeedback_text_elem = ET.SubElement(generalfeedback_elem, "text")
-        generalfeedback_text_elem.text = ""
-        
-        # Single answer only
-        single_elem = ET.SubElement(question_elem, "single")
-        single_elem.text = "true"
-        
-        # Shuffle answers
-        shuffleanswers_elem = ET.SubElement(question_elem, "shuffleanswers")
-        shuffleanswers_elem.text = "true"
-        
-        # Add answer alternatives
-        for alternative in alternatives:
-            answer_elem = ET.SubElement(question_elem, "answer")
-            
-            # Determine if this is the correct answer - improved matching
-            is_correct = any(
-                correct.strip().lower() == alternative.strip().lower() 
-                for correct in correct_answers
-            )
-            answer_elem.set("fraction", "100" if is_correct else "0")
-            
-            answer_text_elem = ET.SubElement(answer_elem, "text")
-            answer_text_elem.text = escape(alternative)
-            
-            # Feedback
-            feedback_elem = ET.SubElement(answer_elem, "feedback", format="html")
-            feedback_text_elem = ET.SubElement(feedback_elem, "text")
-            feedback_text_elem.text = ""
-        
-        return _create_xml_with_cdata(question_elem, question_text)
+
+        return _create_question_manually(
+            question.id,
+            question.subject.value,
+            "multichoice",
+            question_text,
+            None,  # No general feedback for now
+            moodle_name_override=question.moodle_name_override,
+            single="true",
+            alternatives=alternatives,
+            correct_answers=correct_answers
+        )
 
 
 class MoodleXMLNumberGenerator(NumberGenerator):
@@ -638,7 +567,7 @@ class MoodleXMLNumberGenerator(NumberGenerator):
         # Question name
         name_elem = ET.SubElement(question_elem, "name")
         name_text_elem = ET.SubElement(name_elem, "text")
-        name_text_elem.text = f"Question {question.id} - {question.subject.value}"
+        name_text_elem.text = question.moodle_name_override or f"Question {question.id} - {question.subject.value}"
         
         # Question text with CDATA
         questiontext_elem = ET.SubElement(question_elem, "questiontext", format="html")
@@ -687,15 +616,28 @@ moodle_xml_registry.register_generator(MoodleXMLNumberGenerator())
 
 class MoodleXMLDropDownGenerator(DropDownGenerator):
     """Generator for dropdown questions in Moodle XML format.
-    
+
     Since dropdown questions in the CSV don't have proper answer alternatives,
     we convert them to short answer questions in Moodle XML format.
     """
-    
+
     def to_moodle_xml(self, question: Question, lang_order: list[str] | None = None) -> str:
-        # Use the short answer generator as a fallback since dropdown data is incomplete
-        short_answer_gen = MoodleXMLShortAnswerGenerator()
-        return short_answer_gen.to_moodle_xml(question, lang_order)
+        # Use manual XML creation for short answer since dropdown data is incomplete
+        question_text = _get_bilingual_text(question, 'question', lang_order, escape_html=False)
+        answer_text = _get_bilingual_text(question, 'answer', lang_order, escape_html=True)
+
+        if not question_text:
+            return f"<!-- Question {question.id} has no content -->"
+
+        return _create_question_manually(
+            question.id,
+            question.subject.value,
+            "shortanswer",
+            question_text,
+            None,  # No general feedback
+            moodle_name_override=question.moodle_name_override,
+            answer_text=answer_text if answer_text else None
+        )
 
 
 class MoodleXMLMultiQuestionGenerator(MultiQuestionGenerator):
@@ -751,7 +693,8 @@ class MoodleXMLMultiQuestionGenerator(MultiQuestionGenerator):
                     chapter=question.chapter,
                     type=QuestionType.essay,
                     subject=question.subject,
-                    content=sub_content
+                    content=sub_content,
+                    moodle_name_override=question.moodle_name_override  # Inherit parent's override
                 )
                 essay_gen = MoodleXMLEssayGenerator()
                 output_parts.append(essay_gen.to_moodle_xml(sub_question, lang_order))
@@ -773,7 +716,8 @@ class MoodleXMLMultiQuestionGenerator(MultiQuestionGenerator):
                 chapter=question.chapter,
                 type=QuestionType.sc,
                 subject=question.subject,
-                content=sub_content
+                content=sub_content,
+                moodle_name_override=question.moodle_name_override  # Inherit parent's override
             )
             sc_gen = MoodleXMLSingleChoiceGenerator()
             output_parts.append(sc_gen.to_moodle_xml(sub_question, lang_order))

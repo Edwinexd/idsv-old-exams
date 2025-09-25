@@ -95,7 +95,8 @@ class CSVQuestionParser:
                 chapter=chapter,
                 type=question_type,
                 subject=subject,
-                content=content
+                content=content,
+                moodle_name_override=row.get('moodle_name_override', '').strip() if row.get('moodle_name_override') else None
             )
             
             return question
