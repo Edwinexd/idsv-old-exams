@@ -1,13 +1,12 @@
 import csv
 import re
-import sys
 from typing import Dict, List, Optional
-from dataclasses import dataclass
-from enum import Enum
-from pydantic import BaseModel
 
 # Import the classes from your existing code
 from models import Question, QuestionContent, QuestionType, QuestionSubject
+from logger_config import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class CSVQuestionParser:
@@ -53,7 +52,7 @@ class CSVQuestionParser:
                 }
                 question_type = type_mapping.get(row['type'].lower())
                 if not question_type:
-                    print(f"Warning: Unknown question type '{row['type']}' for question {question_id}", file=sys.stderr)
+                    logger.warning(f"Unknown question type '{row['type']}' for question {question_id}")
                     return None
             
             # Parse subject
@@ -66,7 +65,7 @@ class CSVQuestionParser:
                 else:
                     raise ValueError(f"Invalid subject: {row['subject']}")
             except ValueError:
-                print(f"Warning: Unknown subject '{row['subject']}' for question {question_id}", file=sys.stderr)
+                logger.warning(f"Unknown subject '{row['subject']}' for question {question_id}")
                 return None
             
             # Build content for both languages
@@ -112,7 +111,7 @@ class CSVQuestionParser:
             return question
             
         except Exception as e:
-            print(f"Error parsing row for question ID {row.get('id', 'unknown')}: {e}")
+            logger.error(f"Error parsing row for question ID {row.get('id', 'unknown')}: {e}")
             return None
     
     def _parse_alternatives(self, alternatives_str: str, separators: Optional[List[str]] = None) -> Optional[List[str]]:
@@ -201,4 +200,4 @@ if __name__ == "__main__":
     with open("question_bank/2025-08-31.csv", "r", encoding="utf-8") as f:
         content = f.read()
     questions = parse_csv_string(content)
-    print(f"Parsed {len(questions)} questions from string content")
+    logger.debug(f"Parsed {len(questions)} questions from string content")

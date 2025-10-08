@@ -1,5 +1,4 @@
 import argparse
-import logging
 import re
 from typing import Dict, List, Optional, Set
 from models import Question, QuestionSubject
@@ -7,6 +6,9 @@ import csv_parser
 from generators import registry, moodle_xml_registry
 from pylatexenc.latexencode import UnicodeToLatexEncoder
 from appendix_handler import AppendixHandler
+from logger_config import setup_logger
+
+logger = setup_logger(__name__)
 
 
 # Initialize Unicode to LaTeX encoder
@@ -33,22 +35,22 @@ def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None,
         try:
             subject_enum = QuestionSubject[subject_filter.upper()]
             questions = [q for q in questions if q.subject == subject_enum]
-            print(f"Filtering questions for subject: {subject_enum.value} ({len(questions)} questions)")
+            logger.info(f"Filtering questions for subject: {subject_enum.value} ({len(questions)} questions)")
         except KeyError:
-            print(f"Error: Unknown subject '{subject_filter}'. Available subjects:")
+            logger.error(f"Unknown subject '{subject_filter}'. Available subjects:")
             for subject in QuestionSubject:
-                print(f"  {subject.name}: {subject.value}")
+                logger.error(f"  {subject.name}: {subject.value}")
             return
 
     # Filter questions by chapter if specified
     if chapter_filter is not None:
         questions = [q for q in questions if q.chapter == chapter_filter]
-        print(f"Filtering questions for chapter: {chapter_filter} ({len(questions)} questions)")
+        logger.info(f"Filtering questions for chapter: {chapter_filter} ({len(questions)} questions)")
 
     # Filter questions by tag if specified
     if tag_filter:
         questions = [q for q in questions if q.tags and tag_filter in q.tags]
-        print(f"Filtering questions for tag: {tag_filter} ({len(questions)} questions)")
+        logger.info(f"Filtering questions for tag: {tag_filter} ({len(questions)} questions)")
 
     # Initialize appendix handler
     appendix_handler = AppendixHandler("appendixes")
@@ -106,7 +108,7 @@ def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None,
     # \section{Subject} is inserted after each subject type
     for subject in QuestionSubject:
         if subject.name not in questions_mapping:
-            logging.warning("The subject %s:%s is not used by any questions.", subject.name, subject.value)
+            logger.warning("The subject %s:%s is not used by any questions.", subject.name, subject.value)
             continue
 
         title = f"\\section{{{subject.value}}}\n\n"
@@ -187,14 +189,14 @@ def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None,
     
     with open(output_filename, "w", encoding="utf-8") as f:
         f.write(output)
-    
-    print(f"Generated LaTeX document with {len(questions)} questions")
+
+    logger.info(f"Generated LaTeX document with {len(questions)} questions")
     if has_machine_references:
-        print("Machine appendix included (questions reference machineForProblemStatements)")
+        logger.info("Machine appendix included (questions reference machineForProblemStatements)")
     else:
-        print("Machine appendix excluded (no questions reference machineForProblemStatements)")
-    print(f"Output written to: {output_filename}")
-    print("Unicode characters have been converted to LaTeX commands")
+        logger.info("Machine appendix excluded (no questions reference machineForProblemStatements)")
+    logger.info(f"Output written to: {output_filename}")
+    logger.info("Unicode characters have been converted to LaTeX commands")
 
 
 def generate_moodle_xml(csv_file: str, subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, tag_filter: Optional[str] = None, lang_order: Optional[List[str]] = None):
@@ -216,22 +218,22 @@ def generate_moodle_xml(csv_file: str, subject_filter: Optional[str] = None, cha
         try:
             subject_enum = QuestionSubject[subject_filter.upper()]
             questions = [q for q in questions if q.subject == subject_enum]
-            print(f"Filtering questions for subject: {subject_enum.value} ({len(questions)} questions)")
+            logger.info(f"Filtering questions for subject: {subject_enum.value} ({len(questions)} questions)")
         except KeyError:
-            print(f"Error: Unknown subject '{subject_filter}'. Available subjects:")
+            logger.error(f"Unknown subject '{subject_filter}'. Available subjects:")
             for subject in QuestionSubject:
-                print(f"  {subject.name}: {subject.value}")
+                logger.error(f"  {subject.name}: {subject.value}")
             return
     
     # Filter questions by chapter if specified
     if chapter_filter is not None:
         questions = [q for q in questions if q.chapter == chapter_filter]
-        print(f"Filtering questions for chapter: {chapter_filter} ({len(questions)} questions)")
+        logger.info(f"Filtering questions for chapter: {chapter_filter} ({len(questions)} questions)")
 
     # Filter questions by tag if specified
     if tag_filter:
         questions = [q for q in questions if q.tags and tag_filter in q.tags]
-        print(f"Filtering questions for tag: {tag_filter} ({len(questions)} questions)")
+        logger.info(f"Filtering questions for tag: {tag_filter} ({len(questions)} questions)")
 
     # Create the XML structure manually
     xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>', '<quiz>']
@@ -248,7 +250,7 @@ def generate_moodle_xml(csv_file: str, subject_filter: Optional[str] = None, cha
     # Add category elements for each subject
     for subject in QuestionSubject:
         if subject.name not in questions_mapping:
-            logging.warning("The subject %s:%s is not used by any questions.", subject.name, subject.value)
+            logger.warning("The subject %s:%s is not used by any questions.", subject.name, subject.value)
             continue
 
         # Add category element
@@ -302,10 +304,10 @@ def generate_moodle_xml(csv_file: str, subject_filter: Optional[str] = None, cha
     # Write XML file directly
     with open(output_filename, "w", encoding="utf-8") as f:
         f.write(final_xml)
-    
-    print(f"Generated Moodle XML quiz with {len(questions)} questions")
-    print(f"Output written to: {output_filename}")
-    print("Both English and Swedish content included when available")
+
+    logger.info(f"Generated Moodle XML quiz with {len(questions)} questions")
+    logger.info(f"Output written to: {output_filename}")
+    logger.info("Both English and Swedish content included when available")
 
 
 def main():
@@ -358,7 +360,7 @@ def main():
     # Check for conflicting filter options
     filters_count = sum([args.subject is not None, args.chapter is not None, args.tag is not None])
     if filters_count > 1:
-        print("Error: Cannot specify more than one filter (--subject, --chapter, or --tag) at the same time")
+        logger.error("Cannot specify more than one filter (--subject, --chapter, or --tag) at the same time")
         return
 
     if args.format == 'moodle':

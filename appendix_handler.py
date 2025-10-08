@@ -6,6 +6,9 @@ import os
 import re
 from typing import Dict, Set, List, Optional
 from pathlib import Path
+from logger_config import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class AppendixHandler:
@@ -48,7 +51,7 @@ class AppendixHandler:
                                     dep += '.tex'
                                 deps.add(dep)
         except Exception as e:
-            print(f"Warning: Could not parse dependencies from {file_path}: {e}")
+            logger.warning(f"Could not parse dependencies from {file_path}: {e}")
         return deps
 
     def _extract_metadata(self, file_path: Path) -> Dict:
