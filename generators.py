@@ -162,7 +162,7 @@ class CodeGenerator(Generator):
         # Just provide space for the solution
         latex += "\\vspace{1cm}\n\n"
 
-        latex += f"\\textbf{{{language.answer}}}: {language.content_not_available_language}\n\n"
+        latex += f"\\textbf{{{language.answer}}}: {language.content_not_applicable}\n\n"
 
         return latex
 
