@@ -144,8 +144,9 @@ jobs:
           mkdir -p release
           find files/ -name "*.pdf" -exec cp {} release/ \;
           # Copy Moodle XML file if it exists
-          if [ -d "files" ] && [ -f "files/moodle_quiz.xml" ]; then
-            cp files/moodle_quiz.xml release/moodle_quiz.xml
+          XML_FILE=$(find files/ -name "moodle_quiz.xml" -type f)
+          if [ -n "$XML_FILE" ]; then
+            cp "$XML_FILE" release/moodle_quiz.xml
             echo "Added Moodle quiz XML to release"
           fi
           # Rename the ALL file to a simpler name
