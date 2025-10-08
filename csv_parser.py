@@ -1,5 +1,6 @@
 import csv
 import re
+import sys
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
@@ -52,7 +53,7 @@ class CSVQuestionParser:
                 }
                 question_type = type_mapping.get(row['type'].lower())
                 if not question_type:
-                    print(f"Warning: Unknown question type '{row['type']}' for question {question_id}")
+                    print(f"Warning: Unknown question type '{row['type']}' for question {question_id}", file=sys.stderr)
                     return None
             
             # Parse subject
@@ -65,7 +66,7 @@ class CSVQuestionParser:
                 else:
                     raise ValueError(f"Invalid subject: {row['subject']}")
             except ValueError:
-                print(f"Warning: Unknown subject '{row['subject']}' for question {question_id}")
+                print(f"Warning: Unknown subject '{row['subject']}' for question {question_id}", file=sys.stderr)
                 return None
             
             # Build content for both languages
