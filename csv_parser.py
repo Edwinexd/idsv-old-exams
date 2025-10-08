@@ -89,6 +89,14 @@ class CSVQuestionParser:
                     ans_alternatives=self._parse_alternatives(row.get('ans_alt_en', ''))
                 )
             
+            # Parse tags
+            tags = None
+            if row.get('tags'):
+                tags_str = row['tags'].strip()
+                if tags_str:
+                    # Parse tags separated by comma, semicolon or pipe
+                    tags = self._parse_alternatives(tags_str)
+
             # Create Question object
             question = Question(
                 id=question_id,
@@ -96,7 +104,8 @@ class CSVQuestionParser:
                 type=question_type,
                 subject=subject,
                 content=content,
-                moodle_name_override=row.get('moodle_name_override', '').strip() if row.get('moodle_name_override') else None
+                moodle_name_override=row.get('moodle_name_override', '').strip() if row.get('moodle_name_override') else None,
+                tags=tags
             )
             
             return question
@@ -137,6 +146,10 @@ class CSVQuestionParser:
     def get_questions_by_chapter(self, chapter: int) -> List[Question]:
         """Get all questions from a specific chapter."""
         return [q for q in self.questions if q.chapter == chapter]
+
+    def get_questions_by_tag(self, tag: str) -> List[Question]:
+        """Get all questions that have a specific tag."""
+        return [q for q in self.questions if q.tags and tag in q.tags]
     
     def validate_questions(self) -> Dict[str, List[int]]:
         """Validate parsed questions and return any issues found."""

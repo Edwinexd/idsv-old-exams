@@ -21,7 +21,7 @@ def encode_for_latex(text):
     
     return latex_encoder.unicode_to_latex(text)
 
-def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, custom_title: Optional[str] = None):
+def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, tag_filter: Optional[str] = None, custom_title: Optional[str] = None):
     """Generate the complete LaTeX document with all sections."""
     
     # Read questions from CSV with proper encoding
@@ -38,12 +38,17 @@ def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None,
             for subject in QuestionSubject:
                 print(f"  {subject.name}: {subject.value}")
             return
-    
+
     # Filter questions by chapter if specified
     if chapter_filter is not None:
         questions = [q for q in questions if q.chapter == chapter_filter]
         print(f"Filtering questions for chapter: {chapter_filter} ({len(questions)} questions)")
-    
+
+    # Filter questions by tag if specified
+    if tag_filter:
+        questions = [q for q in questions if q.tags and tag_filter in q.tags]
+        print(f"Filtering questions for tag: {tag_filter} ({len(questions)} questions)")
+
     # Check if any questions reference machineForProblemStatements
     has_machine_references = any(
         'machineForProblemStatements' in str(q.content.get('sv', '')) or 
@@ -59,6 +64,8 @@ def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None,
         document_title = f"{subject_enum.value} Questions"
     elif chapter_filter is not None:
         document_title = f"Chapter {chapter_filter} Questions"
+    elif tag_filter:
+        document_title = f"Tag: {tag_filter}"
     else:
         document_title = "IDSV - Old Exam Questions, 2021-present"
     
@@ -152,6 +159,10 @@ def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None,
         output_filename = f"output_{subject_filter.lower()}.tex"
     elif chapter_filter is not None:
         output_filename = f"output_chapter_{chapter_filter}.tex"
+    elif tag_filter:
+        # Make filename safe by replacing spaces and special chars
+        safe_tag = tag_filter.replace(' ', '_').replace('/', '_').replace('\\', '_')
+        output_filename = f"output_tag_{safe_tag}.tex"
     
     with open(output_filename, "w", encoding="utf-8") as f:
         f.write(output)
@@ -165,7 +176,7 @@ def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None,
     print("Unicode characters have been converted to LaTeX commands")
 
 
-def generate_moodle_xml(csv_file: str, subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, lang_order: Optional[List[str]] = None):
+def generate_moodle_xml(csv_file: str, subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, tag_filter: Optional[str] = None, lang_order: Optional[List[str]] = None):
     """Generate Moodle XML quiz format from question bank with bilingual support.
     
     Args:
@@ -195,7 +206,12 @@ def generate_moodle_xml(csv_file: str, subject_filter: Optional[str] = None, cha
     if chapter_filter is not None:
         questions = [q for q in questions if q.chapter == chapter_filter]
         print(f"Filtering questions for chapter: {chapter_filter} ({len(questions)} questions)")
-    
+
+    # Filter questions by tag if specified
+    if tag_filter:
+        questions = [q for q in questions if q.tags and tag_filter in q.tags]
+        print(f"Filtering questions for tag: {tag_filter} ({len(questions)} questions)")
+
     # Create the XML structure manually
     xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>', '<quiz>']
     
@@ -257,6 +273,10 @@ def generate_moodle_xml(csv_file: str, subject_filter: Optional[str] = None, cha
         output_filename = f"moodle_quiz_{subject_filter.lower()}.xml"
     elif chapter_filter is not None:
         output_filename = f"moodle_quiz_chapter_{chapter_filter}.xml"
+    elif tag_filter:
+        # Make filename safe by replacing spaces and special chars
+        safe_tag = tag_filter.replace(' ', '_').replace('/', '_').replace('\\', '_')
+        output_filename = f"moodle_quiz_tag_{safe_tag}.xml"
     
     # Write XML file directly
     with open(output_filename, "w", encoding="utf-8") as f:
@@ -274,6 +294,8 @@ def main():
                        help='Generate questions for a specific subject only. Use subject name from QuestionSubject enum (e.g., HIS, BIN, etc.)')
     parser.add_argument('--chapter', '-c', type=int,
                        help='Generate questions for a specific chapter only. Use chapter number (e.g., 0, 1, 2, etc.)')
+    parser.add_argument('--tag',
+                       help='Generate questions for a specific tag only. Use exact tag string.')
     parser.add_argument('--title', '-t',
                        help='Custom title for the document. If not provided, defaults to subject-specific title when filtering by subject.')
     parser.add_argument('--format', '-f', choices=['latex', 'moodle'], default='latex',
@@ -282,6 +304,8 @@ def main():
                        help='Language order for answer alternatives in Moodle XML (default: sv en)')
     parser.add_argument('--list-subjects', action='store_true',
                        help='List all available subjects and exit')
+    parser.add_argument('--list-tags', action='store_true',
+                       help='List all available tags and exit')
     parser.add_argument('--csv-file', '-i', default='question_bank/2025-08-31.csv',
                        help='CSV file to process (default: question_bank/2025-08-31.csv)')
     
@@ -292,15 +316,34 @@ def main():
         for subject in QuestionSubject:
             print(f"  {subject.name}: {subject.value}")
         return
-    
-    if args.subject and args.chapter is not None:
-        print("Error: Cannot specify both --subject and --chapter filters at the same time")
+
+    if args.list_tags:
+        # Read questions to extract all unique tags
+        questions = csv_parser.read_csv_file(args.csv_file)
+        all_tags = set()
+        for q in questions:
+            if q.tags:
+                all_tags.update(q.tags)
+        if all_tags:
+            print("Available tags:")
+            for tag in sorted(all_tags):
+                # Count questions with this tag
+                count = sum(1 for q in questions if q.tags and tag in q.tags)
+                print(f"  {tag} ({count} questions)")
+        else:
+            print("No tags found in the question bank")
         return
     
+    # Check for conflicting filter options
+    filters_count = sum([args.subject is not None, args.chapter is not None, args.tag is not None])
+    if filters_count > 1:
+        print("Error: Cannot specify more than one filter (--subject, --chapter, or --tag) at the same time")
+        return
+
     if args.format == 'moodle':
-        generate_moodle_xml(args.csv_file, args.subject, args.chapter, args.lang_order)
+        generate_moodle_xml(args.csv_file, args.subject, args.chapter, args.tag, args.lang_order)
     else:
-        generate_latex_document(args.csv_file, args.subject, args.chapter, args.title)
+        generate_latex_document(args.csv_file, args.subject, args.chapter, args.tag, args.title)
 
 
 if __name__ == "__main__":

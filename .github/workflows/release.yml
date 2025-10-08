@@ -9,8 +9,34 @@ permissions:
   contents: write
 
 jobs:
+  # Job to extract unique tags from CSV
+  get-tags:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.extract_tags.outputs.tags }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Extract unique tags
+        id: extract_tags
+        run: |
+          TAGS_JSON=$(python3 .github/workflows/get_tags.py)
+          echo "tags=${TAGS_JSON}" >> $GITHUB_OUTPUT
+          echo "Found tags: ${TAGS_JSON}"
+
   build-and-release:
     runs-on: ubuntu-latest
+    needs: get-tags
     strategy:
       matrix:
         include:
@@ -269,9 +295,61 @@ jobs:
           name: moodle-xml-all
           path: moodle_quiz.xml
 
-  create-release:
-    needs: build-and-release
+  # New job to build PDFs for each tag
+  build-tags:
     runs-on: ubuntu-latest
+    needs: get-tags
+    if: needs.get-tags.outputs.tags != '[]'
+    strategy:
+      matrix:
+        tag: ${{fromJson(needs.get-tags.outputs.tags)}}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Python Compiler for Tag
+        run: |
+          python3 main.py --tag "${{ matrix.tag }}" --title "Tag: ${{ matrix.tag }}"
+
+      - name: Determine LaTeX file
+        id: latex_file
+        run: |
+          # Make filename safe by replacing spaces and special chars
+          SAFE_TAG=$(echo "${{ matrix.tag }}" | tr ' ' '_' | tr '/' '_' | tr '\\' '_')
+          echo "latex_file=output_tag_${SAFE_TAG}.tex" >> $GITHUB_OUTPUT
+          echo "pdf_name=old-exam-questions-tag-${SAFE_TAG}.pdf" >> $GITHUB_OUTPUT
+          echo "safe_tag=${SAFE_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Compile LaTeX Document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: ${{ steps.latex_file.outputs.latex_file }}
+
+      - name: Rename PDF
+        run: |
+          LATEX_FILE="${{ steps.latex_file.outputs.latex_file }}"
+          PDF_FILE="${LATEX_FILE%.tex}.pdf"
+          mv "$PDF_FILE" "${{ steps.latex_file.outputs.pdf_name }}"
+
+      - name: Upload PDF as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf-tag-${{ steps.latex_file.outputs.safe_tag }}
+          path: ${{ steps.latex_file.outputs.pdf_name }}
+
+  create-release:
+    needs: [build-and-release, build-tags]
+    runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Extract Short Commit SHA
         id: short_sha
@@ -314,6 +392,14 @@ jobs:
               echo "Renamed $file to $new_name"
             fi
           done
+          # Rename tag files to have a simpler name
+          for file in old-exam-questions-tag-*.pdf; do
+            if [ -f "$file" ]; then
+              new_name=$(echo "$file" | sed 's/old-exam-questions-//')
+              mv "$file" "$new_name"
+              echo "Renamed $file to $new_name"
+            fi
+          done
           cd ..
           ls -la release/
 
@@ -329,7 +415,8 @@ jobs:
             - `old-exam-questions.pdf`: A single document containing all subjects.
             - `[SUBJECT].pdf`: A separate document for each individual subject (e.g., `AI.pdf`, `DBS.pdf`).
             - `chapter-[X].pdf`: A separate document for each individual chapter (e.g., `chapter-0.pdf`, `chapter-1.pdf`).
-            
+            - `tag-[TAG].pdf`: A separate document for each tag in the question bank (if tags exist).
+
             This release also includes:
             - `moodle_quiz.xml`: A Moodle quiz bank export containing all questions in Swedish-English order for import into Moodle.
           files: |
