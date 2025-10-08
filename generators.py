@@ -139,12 +139,41 @@ class NumberGenerator(ShortAnswerGenerator):
     supported_type = QuestionType.nq
 
 
+# code = "Code Assignment"
+# Shows only the assignment description, no answer available
+class CodeGenerator(Generator):
+    supported_type = QuestionType.code
+
+    def to_latex(self, question: Question, lang: LANGUAGE_CODE, with_answer: bool = False) -> str:
+        language = LANGUAGES[lang]
+        content = question.content.get(lang)
+        if not content:
+            logging.warning(f"Question {question.id} does not have content in language {lang}")
+            return ""
+
+        # Process appendix placeholders in the question
+        processed_question = process_appendix_placeholders(content.question)
+
+        latex = f"\\subsection*{{{language.programming} ({question.id})}}\n\n"
+        latex += f"\\label{{q:{question.id}:code:{lang}}}\n\n"
+        latex += f"{processed_question}\n\n"
+
+        # No answer is shown for code assignments
+        # Just provide space for the solution
+        latex += "\\vspace{1cm}\n\n"
+
+        latex += f"\\textbf{{{language.answer}}}: {language.content_not_available_language}\n\n"
+
+        return latex
+
+
 registry.register_generator(ShortAnswerGenerator())
 registry.register_generator(EssayGenerator())
 registry.register_generator(MultipleChoiceGenerator())
 registry.register_generator(SingleChoiceGenerator())
 registry.register_generator(DropDownGenerator())
 registry.register_generator(NumberGenerator())
+registry.register_generator(CodeGenerator())
 
 
 # mq = "Multi Question" # generates a questions
@@ -626,6 +655,27 @@ class MoodleXMLNumberGenerator(NumberGenerator):
         return _create_xml_with_cdata(question_elem, question_text)
 
 
+class MoodleXMLCodeGenerator(CodeGenerator):
+    """Generator for code assignment questions in Moodle XML format"""
+
+    def to_moodle_xml(self, question: Question, lang_order: list[str] | None = None) -> str:
+        question_text = _get_bilingual_text(question, 'question', lang_order)
+
+        if not question_text:
+            return f"<!-- Question {question.id} has no content -->"
+
+        # Code assignments are exported as essay questions in Moodle
+        # No answer feedback is provided since answers are not available
+        return _create_question_manually(
+            question.id,
+            question.subject.value,
+            "essay",
+            question_text,
+            None,  # No answer feedback
+            moodle_name_override=question.moodle_name_override
+        )
+
+
 # Create Moodle XML generator registry
 moodle_xml_registry = _GeneratorRegistry()
 moodle_xml_registry.register_generator(MoodleXMLShortAnswerGenerator())
@@ -633,6 +683,7 @@ moodle_xml_registry.register_generator(MoodleXMLEssayGenerator())
 moodle_xml_registry.register_generator(MoodleXMLMultipleChoiceGenerator())
 moodle_xml_registry.register_generator(MoodleXMLSingleChoiceGenerator())
 moodle_xml_registry.register_generator(MoodleXMLNumberGenerator())
+moodle_xml_registry.register_generator(MoodleXMLCodeGenerator())
 
 
 class MoodleXMLDropDownGenerator(DropDownGenerator):

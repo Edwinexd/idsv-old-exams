@@ -48,7 +48,8 @@ class CSVQuestionParser:
                     'mc': QuestionType.mc,
                     'mq': QuestionType.mq,
                     'dq': QuestionType.dq,
-                    'nq': QuestionType.nq
+                    'nq': QuestionType.nq,
+                    'code': QuestionType.code
                 }
                 question_type = type_mapping.get(row['type'].lower())
                 if not question_type:

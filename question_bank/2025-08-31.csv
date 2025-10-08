@@ -559,3 +559,149 @@ g) comprehensive documentation; h) following a plan.","individer och interaktion
 482,26,11,essay,AI,26,Vad kallas en graf där man beskriver alla möjliga vägar från ett initialt tillstånd till andra möjliga tillstånd där syftet är att nå ett måltillstånd?,What is a graph where you describe all possible paths from an initial state to other possible states where the purpose is to reach a goal state called?,Sökträd,Search tree,,,,,"2025gA,2025gB,2025gC"
 484,29,12,essay,PRB,29,Ge ett exempel på ett problem där det inte finns någon beräkningsbar funktion som kan lösa problemet!,Give an example of a problem where there is no computable function that can solve the problem!,Stopp-problemet,The halting problem,,,,,"2025gA,2025gB,2025gC"
 485,30,12,essay,PRB,30,"Vilka av följande påståenden vet vi är sanna respektive falska avseende problemklasserna P och NP? a) P = NP, b) P != NP, c) P >= NP, d) P =< NP, e) P > NP, f) P < NP.","Which of the following statements do we know to be true or false regarding the problem classes P and NP? a) P = NP, b) P != NP, c) P >= NP, d) P =< NP, e) P > NP, f) P < NP.","Påstående d är sant, påstående e är falskt, resten är okänt.","Statement d is true, statement e is false, the rest is unknown.",,,,,"2025gA,2025gC"
+486,,,code,PRG,,"Programmet kan editeras och kontrolleras obegränsat antal gånger. Ett program som klarar alla tester får full poäng
+(6 poäng, om inte något speciellt inträffar, t.ex. upptäckt fusk)), men även program som inte producerar helt rätt resultat
+eller innehåller syntaxfel kan få delpoäng. Obs! att radnummer i ev. felmeddelanden kanske inte stämmer, pga att miljön
+lägger in egen kod i det testade programmet. Obs! vidare att lösningen måste fungera för olika indata, lösningar som bara
+gör utskrifter som förväntas i testerna ger inga poäng.
+
+Skriv ett Python-program som hanterar konton i en bank. Konton identifieras med kundens 
+sexsiffriga födelsedatum på formen ÅÅMMDD (representerat som ett heltal), vi förenklar så att det inte finns två kunder som
+har samma födelsedatum. Kontonumren finns redan och anges i inmatningsfältet nedan.
+Programmet ska hålla reda på saldot för varje konto. Från början är alla saldon 0. Du behöver inte tänka på att spara data på någon fil.
+
+Programmet ska vara kommandostyrt, se dialogexemplet i tabellen nedan. Följande kommandon ska kunna ges:
+
+ ""in/ut"" - (ett enda kommando som ser ut så) en insättning eller ett uttag (vid uttag förväntas användaren mata in
+ett negativt belopp, det är den enda skillnaden mellan insättning och uttag. Du behöver inte kolla om beloppet är negativt eller ej).
+Programmet ska fråga om kontonr. Om det inmatade kontonumret inte finns ska felmeddelandet ""Inget sådant konto!"" skrivas ut,
+annars ska programmet fråga om belopp, och uppdatera saldot med detta belopp. Du behöver inte kontrollera om det finns
+tillräckligt mycket pengar på kontot vid negativt belopp.
+""lista"" - alla kontonummer med tillhörande saldo ska skrivas ut, med kolon "":"" mellan kontonumret och saldot.
+""sluta"" - programmet avslutas, meddelandet ""Tack och välkommen åter!"" ska skrivas ut.
+Matar användaren in något annat som kommando ska felmeddelandet ""Fel kommando!"" skrivas ut.
+
+Du kan anta att all numerisk inmatning är korrekt och att kommandon matas in med små bokstäver.","The program can be edited and checked an unlimited number of times. A program that passes all tests gets full points
+(6 points, unless something special happens, e.g. cheating is detected), but even programs that do not produce exactly
+the right results or contain syntax errors can get partial points. Note! that line numbers in any error messages may
+not be correct, because the environment inserts its own code into the tested program. Note! further that the solution must
+work for different input data, solutions that only print out what is expected in the tests do not get any points.
+
+Write a Python program that manages accounts in a bank. Accounts are identified by the customer's six-digit
+date of birth in the form YYMMDD (represented as an integer), we simplify so that no two customers have the same date of birth.
+Account numbers exist already and are listed in the input field below. The program should keep track of the balance for each account.
+Initially, all balances are 0. You don't need to worry about saving the data to any file.
+
+The program should be command-driven, see the dialog example in the table below.
+The following commands should be possible: 
+
+""in/out"" - a deposit or a withdrawal (for withdrawals, the user is expected to enter a negative amount,
+that is the only difference between deposit and withdrawal. You do not need to check whether the amount is negative or not).
+The program should ask for an account number. If the entered account number does not exist, the error message
+""Inget sådant konto!"" should be printed, otherwise the program should ask for an amount, and update the balance with this amount.
+You do not need to check whether there is enough money in the account in the event of a negative amount. 
+""list"" - all account numbers with their associated balances should be printed, with a colon "":"" between the account number and the balance. 
+""exit"" - the program ends, the message ""Tack och välkommen åter!"" should be printed. 
+If the user enters something else as a command, the error message ""Fel kommando!"" should be printed. 
+
+You can assume that all numeric input is correct and that commands are entered in lowercase.",,,,,,,2025gA
+487,,,code,PRG,,"Programmet kan editeras och kontrolleras obegränsat antal gånger. Ett program som klarar alla tester får full poäng
+(6 poäng, om inte något speciellt inträffar, t.ex. upptäckt fusk)), men även program som inte producerar helt rätt resultat
+eller innehåller syntaxfel kan få delpoäng. Obs! att radnummer i ev. felmeddelanden kanske inte stämmer, pga att miljön
+lägger in egen kod i det testade programmet.
+Obs! vidare att lösningen måste fungera för olika indata, lösningar som bara gör utskrifter som förväntas i testerna ger inga poäng.
+
+Skriv ett Python-program som kan hjälpa till att ställa upp en hushållsbudget.
+I en hushållsbudget har man dels inkomster, dels utgifter i olika kategorier, t.ex. boende, mat o.s.v.
+I det här programmet har man några fastställda kategorier som finns samlade i en lista i inmatningsfönstret nedan.
+Inkomster ses här också som en kategori som finns på första plats i listan.
+
+Programmet ska i en loop fråga användaren om kategori, tills användaren svarar ""sluta"" på frågan om kategori.
+Om användaren matar in en kategori som inte finns ska felmeddelandet ""Ingen sådan kategori!"" skrivas ut.
+Om användaren matar in en godkänd kategori ska programmet fråga om belopp och addera beloppet till hittillsvarande summan
+för den katagorin. Obs att användaren kan ange samma kategori flera gånger.
+
+Efter att användaren har angett kategorin som ""sluta"" ska programmet skriva ut rubriken ""Din hushållsbudget:"" 
+och därefter en lista av kategorier, kolon "":"" och beloppsumman för den kategorin.
+Därefter ska pogrammet skriva ut ""Dina utgifter är större än dina inkomster"" om utgifterna (d.v.s. summan av alla belopp
+utom beloppet på första platsen i listan) är större än inkomsten, annars ""Dina inkomster är större än dina utgifter"".
+
+Du kan anta att all numerisk inmatning är korrekt och att kategorierna matas in med små bokstäver.","The program can be edited and checked an unlimited number of times. A program that passes all tests gets full points 
+(6 points, unless something special happens, e.g. cheating is detected), but even programs that do not produce exactly
+the right results or contain syntax errors can get partial points. Note! that line numbers in any error messages may not be correct,
+because the environment inserts its own code into the tested program.
+Note! further that the solution must work for different input data, solutions that only print out what is expected in the tests do not get any points.
+
+Write a Python program that can help you set up a household budget.
+In a household budget, you have income and expenses in different categories, such as housing, food, etc.
+In this program, you have some fixed categories that are collected in a list in the input window below.
+Income is also seen here as a category that is in the first place in the list.
+
+The program should ask the user for a category in a loop, until the user answers ""sluta"" to the category question.
+If the user enters a category that does not exist, the error message ""Ingen sådan kategori!"" should be printed.
+If the user enters a valid category, the program should ask for an amount and add the amount to the total so far
+for that category. Note that the user can enter the same category multiple times.
+
+After the user sets the category to ""sluta"", the program should print the heading ""Din hushållsbudget:"" 
+and then a list of categories, a colon "":"" and the sum of the amounts for that category.
+The program should then print ""Dina utgifter är större än dina inkomster"" if the expenses (i.e. the sum of all amounts
+except the amount in the first place in the list) are greater than the income, otherwise "" ""Dina inkomster är större än dina utgifter"".
+
+You can assume that all numeric input is correct and that the categories are entered in lowercase.
+
+",,,,,,,2025gB
+488,,,code,PRG,,"Programmet kan editeras och kontrolleras obegränsat antal gånger. Ett program som klarar alla tester får full poäng
+(6 poäng, om inte något speciellt inträffar, t.ex. upptäckt fusk)), men även program som inte producerar helt rätt resultat
+eller innehåller syntaxfel kan få delpoäng. Obs! att radnummer i ev. felmeddelanden kanske inte stämmer, pga att miljön
+lägger in egen kod i det testade programmet.
+Obs! vidare att lösningen måste fungera för olika indata, lösningar som bara gör utskrifter som förväntas i testerna ger inga poäng.
+
+Skriv ett Python program som kan hjälpa till med att utvärdera en kurs.
+Programmet ska fråga de som besvarar utvärderingen om deras betyg på fyra olika faktorer,
+och sedan skriva ut det genomsnittliga betyget för dessa faktorer. De fyra faktorerna som
+ska bedömas finns samlade i en lista som finns färdig i inmatningsfönstret nedan.
+
+Programmet ska i en loop fråga om användarens namn (för att kolla om den användaren inte
+redan besvarat utvärderingen - vi antar att namnen är unika). Loopen avslutas med att användaren 
+besvarar frågan om namn med ""sluta"". Om någon med det inmatade namnet redan har svarat ska
+felmeddelandet ""Har redan svarat!"" skrivas ut, annars ska programmet skriva ut rubriken
+""Ange betyg (1-5) för..."" och sedan fråga om betyget för var och en av faktorerna (se dialogexemplet nedan).
+Du behöver inte kontrollera att det inlästa betyget är korrekt, vi antar att det är en siffra mellan 1 och 5.
+Det inlästa betyget ska adderas till betygssumman för den här faktorn.
+
+Efter att användaren har matat in ""sluta"" som svar på frågan om namn ska programmet skriva ut rubriken
+""Enkätresultat:"" och sedan en lista med fyra rader, med faktorn, kolon "":"" och det genomsnittliga betyget (betygssumman 
+dividerat med antalet som svarat) för varje faktor. Men om ingen har besvarat utvärderingen så ska
+meddelandet ""Ingen besvarade enkäten!"" skrivas ut istället. 
+
+De genomsnittliga betygen kan komma att skrivas ut med orimligt många decimaler, det är så det ska vara.
+Du behöver inte kontrollera om det inmatade betyget är numeriskt eller att det ligger mellan 1 och 5,
+och du kan anta att namnen alltid matas in med små bokstäver.
+
+","The program can be edited and checked an unlimited number of times. A program that passes all tests gets full points 
+(6 points, unless something special happens, e.g. cheating is detected), but even programs that do not produce exactly
+the right results or contain syntax errors can get partial points. Note! that line numbers in any error messages may not be correct,
+because the environment inserts its own code into the tested program.
+Note! further that the solution must work for different input data, solutions that only print out what is expected in the tests do not get any points.
+
+Write a Python program that can help evaluate a course.
+The program should ask those who respond to the evaluation about their grades on four different factors,
+and then print the average grade for these factors. The four factors that are to be evaluated are collected in a list
+that is ready in the input window below.
+
+The program should ask for the user's name in a loop (to check whether that user has not already answered the evaluation
+- we assume that the names are unique). The loop ends with the user answering the question about name with ""sluta"".
+If someone with the entered name has already answered, the error message ""Har redan svarat!"" should be printed,
+otherwise the program should print the heading ""Ange betyg (1-5) för..."" and then ask for the rating for each of the factors
+(see the dialog example below). You do not need to check that the entered rating is correct, we assume that it is a digit between 1 and 5.
+The entered rating should be added to the rating total for this factor.
+
+After the user enters ""sluta"" in response to the name question, the program should print the heading
+""Enkätresultat:"" and then a list of four lines, with the factor, a colon "":"", and the average rating (the sum of the ratings divided by
+the number of respondents) for each factor. However, if no one has responded to the evaluation, the message
+""Ingen besvarade enkäten!"" should be printed instead.
+
+The average ratings will be printed with an unreasonable number of decimal places, which is how it should be, you shouldn't do anything about it.
+
+You do not need to check whether the entered rating is numeric or between 1 and 5,
+and you can assume that names are always entered in lowercase.",,,,,,,2025gC

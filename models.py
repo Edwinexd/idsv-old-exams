@@ -13,7 +13,8 @@ from pydantic import BaseModel
 # mq	Multi-question questions. Questions where the program will generate a random question from several questions regarding the same subject.
 # dq	Drop-down menu questions.
 # nq	Number questions.
-# 
+# code  Code runner questions.
+ 
 class QuestionType(Enum):
     essay = "Essay"
     sa = "Short Answer"
@@ -22,6 +23,7 @@ class QuestionType(Enum):
     mq = "Multi Question" # generates a questions
     dq = "Drop Down"
     nq = "Number"
+    code = "Code Assignment"
 
 # Subject Explanation
 class QuestionSubject(Enum):
@@ -101,6 +103,7 @@ class QuestionSubject(Enum):
     ERR = "Errors"
     VAR = "Variables"
     GAI = "Generative AI"
+    PRG = "Programming"
 
 # question - The question text
 # answer - The answer text
