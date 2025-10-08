@@ -9,11 +9,11 @@ permissions:
   contents: write
 
 jobs:
-  # Job to extract unique tags from CSV
-  get-tags:
+  # Job to build complete matrix from CSV
+  build-matrix:
     runs-on: ubuntu-latest
     outputs:
-      tags: ${{ steps.extract_tags.outputs.tags }}
+      matrix: ${{ steps.build_matrix.outputs.matrix }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -27,202 +27,19 @@ jobs:
       - name: Install Python Dependencies
         run: pip install -r requirements.txt
 
-      - name: Extract unique tags
-        id: extract_tags
+      - name: Build matrix
+        id: build_matrix
         run: |
-          TAGS_JSON=$(python3 .github/workflows/get_tags.py)
-          echo "tags=${TAGS_JSON}" >> $GITHUB_OUTPUT
-          echo "Found tags: ${TAGS_JSON}"
+          MATRIX_JSON=$(python3 .github/workflows/build_matrix.py)
+          echo "matrix=${MATRIX_JSON}" >> $GITHUB_OUTPUT
+          echo "Built matrix with $(echo ${MATRIX_JSON} | jq 'length') items"
 
   build-and-release:
     runs-on: ubuntu-latest
-    needs: get-tags
+    needs: build-matrix
     strategy:
       matrix:
-        include:
-          # All subjects compilation
-          - type: 'subject'
-            value: 'ADR'
-          - type: 'subject'
-            value: 'AGL'
-          - type: 'subject'
-            value: 'AI'
-          - type: 'subject'
-            value: 'ALG'
-          - type: 'subject'
-            value: 'ANM'
-          - type: 'subject'
-            value: 'ASB'
-          - type: 'subject'
-            value: 'BIN'
-          - type: 'subject'
-            value: 'BIT'
-          - type: 'subject'
-            value: 'BOL'
-          - type: 'subject'
-            value: 'CAR'
-          - type: 'subject'
-            value: 'CCS'
-          - type: 'subject'
-            value: 'CHR'
-          - type: 'subject'
-            value: 'CME'
-          - type: 'subject'
-            value: 'CMP'
-          - type: 'subject'
-            value: 'CNP'
-          - type: 'subject'
-            value: 'COD'
-          - type: 'subject'
-            value: 'COL'
-          - type: 'subject'
-            value: 'COM'
-          - type: 'subject'
-            value: 'CRP'
-          - type: 'subject'
-            value: 'CRT'
-          - type: 'subject'
-            value: 'DAT'
-          - type: 'subject'
-            value: 'DBS'
-          - type: 'subject'
-            value: 'DDL'
-          - type: 'subject'
-            value: 'DEC'
-          - type: 'subject'
-            value: 'DIG'
-          - type: 'subject'
-            value: 'DLC'
-          - type: 'subject'
-            value: 'DMN'
-          - type: 'subject'
-            value: 'DRM'
-          - type: 'subject'
-            value: 'DTP'
-          - type: 'subject'
-            value: 'DTS'
-          - type: 'subject'
-            value: 'ERR'
-          - type: 'subject'
-            value: 'GAI'
-          - type: 'subject'
-            value: 'HEX'
-          - type: 'subject'
-            value: 'HIS'
-          - type: 'subject'
-            value: 'HTM'
-          - type: 'subject'
-            value: 'INR'
-          - type: 'subject'
-            value: 'LIG'
-          - type: 'subject'
-            value: 'LOG'
-          - type: 'subject'
-            value: 'MAL'
-          - type: 'subject'
-            value: 'MAS'
-          - type: 'subject'
-            value: 'MAW'
-          - type: 'subject'
-            value: 'MCL'
-          - type: 'subject'
-            value: 'MDL'
-          - type: 'subject'
-            value: 'MDN'
-          - type: 'subject'
-            value: 'MEM'
-          - type: 'subject'
-            value: 'MIS'
-          - type: 'subject'
-            value: 'NCO'
-          - type: 'subject'
-            value: 'NEN'
-          - type: 'subject'
-            value: 'NET'
-          - type: 'subject'
-            value: 'NLP'
-          - type: 'subject'
-            value: 'OPR'
-          - type: 'subject'
-            value: 'OPS'
-          - type: 'subject'
-            value: 'PRB'
-          - type: 'subject'
-            value: 'PRC'
-          - type: 'subject'
-            value: 'PRD'
-          - type: 'subject'
-            value: 'PRL'
-          - type: 'subject'
-            value: 'PRM'
-          - type: 'subject'
-            value: 'PRO'
-          - type: 'subject'
-            value: 'PRT'
-          - type: 'subject'
-            value: 'PTN'
-          - type: 'subject'
-            value: 'PTR'
-          - type: 'subject'
-            value: 'REG'
-          - type: 'subject'
-            value: 'RIT'
-          - type: 'subject'
-            value: 'RLT'
-          - type: 'subject'
-            value: 'SAM'
-          - type: 'subject'
-            value: 'SBR'
-          - type: 'subject'
-            value: 'SCR'
-          - type: 'subject'
-            value: 'SER'
-          - type: 'subject'
-            value: 'SFD'
-          - type: 'subject'
-            value: 'SSI'
-          - type: 'subject'
-            value: 'TDG'
-          - type: 'subject'
-            value: 'TRN'
-          - type: 'subject'
-            value: 'TST'
-          - type: 'subject'
-            value: 'TWO'
-          - type: 'subject'
-            value: 'VAR'
-          - type: 'subject'
-            value: 'VER'
-          # All chapters compilation
-          - type: 'chapter'
-            value: '0'
-          - type: 'chapter'
-            value: '1'
-          - type: 'chapter'
-            value: '2'
-          - type: 'chapter'
-            value: '3'
-          - type: 'chapter'
-            value: '4'
-          - type: 'chapter'
-            value: '5'
-          - type: 'chapter'
-            value: '6'
-          - type: 'chapter'
-            value: '7'
-          - type: 'chapter'
-            value: '8'
-          - type: 'chapter'
-            value: '9'
-          - type: 'chapter'
-            value: '10'
-          - type: 'chapter'
-            value: '11'
-          - type: 'chapter'
-            value: '12'
-          # Complete compilation
-          - type: 'all'
-            value: 'ALL'
+        include: ${{ fromJson(needs.build-matrix.outputs.matrix) }}
 
     steps:
       - name: Checkout Repository
@@ -237,7 +54,7 @@ jobs:
       - name: Install Python Dependencies
         run: pip install -r requirements.txt
 
-      - name: Run Python Compiler for Subject/Chapter
+      - name: Run Python Compiler
         run: |
           if [ "${{ matrix.type }}" = "all" ]; then
             python3 main.py
@@ -251,6 +68,8 @@ jobs:
             # Get chapter name for title using helper script
             CHAPTER_NAME=$(python3 .github/workflows/get_chapter_title.py ${{ matrix.value }})
             python3 main.py --chapter ${{ matrix.value }} --title "$CHAPTER_NAME"
+          elif [ "${{ matrix.type }}" = "tag" ]; then
+            python3 main.py --tag "${{ matrix.value }}" --title "Tag: ${{ matrix.value }}"
           fi
 
       - name: Determine LaTeX file
@@ -265,6 +84,11 @@ jobs:
           elif [ "${{ matrix.type }}" = "chapter" ]; then
             echo "latex_file=output_chapter_${{ matrix.value }}.tex" >> $GITHUB_OUTPUT
             echo "pdf_name=old-exam-questions-chapter-${{ matrix.value }}.pdf" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.type }}" = "tag" ]; then
+            SAFE_TAG=$(echo "${{ matrix.value }}" | tr ' ' '_' | tr '/' '_' | tr '\\' '_')
+            echo "latex_file=output_tag_${SAFE_TAG}.tex" >> $GITHUB_OUTPUT
+            echo "pdf_name=old-exam-questions-tag-${SAFE_TAG}.pdf" >> $GITHUB_OUTPUT
+            echo "safe_tag=${SAFE_TAG}" >> $GITHUB_OUTPUT
           fi
 
       - name: Compile LaTeX Document
@@ -280,6 +104,10 @@ jobs:
             mv "output_$(echo ${{ matrix.value }} | tr '[:upper:]' '[:lower:]').pdf" "${{ steps.latex_file.outputs.pdf_name }}"
           elif [ "${{ matrix.type }}" = "chapter" ]; then
             mv "output_chapter_${{ matrix.value }}.pdf" "${{ steps.latex_file.outputs.pdf_name }}"
+          elif [ "${{ matrix.type }}" = "tag" ]; then
+            LATEX_FILE="${{ steps.latex_file.outputs.latex_file }}"
+            PDF_FILE="${LATEX_FILE%.tex}.pdf"
+            mv "$PDF_FILE" "${{ steps.latex_file.outputs.pdf_name }}"
           fi
 
       - name: Upload PDF as Artifact
@@ -295,59 +123,8 @@ jobs:
           name: moodle-xml-all
           path: moodle_quiz.xml
 
-  # New job to build PDFs for each tag
-  build-tags:
-    runs-on: ubuntu-latest
-    needs: get-tags
-    if: needs.get-tags.outputs.tags != '[]'
-    strategy:
-      matrix:
-        tag: ${{fromJson(needs.get-tags.outputs.tags)}}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-          cache: 'pip'
-
-      - name: Install Python Dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run Python Compiler for Tag
-        run: |
-          python3 main.py --tag "${{ matrix.tag }}" --title "Tag: ${{ matrix.tag }}"
-
-      - name: Determine LaTeX file
-        id: latex_file
-        run: |
-          # Make filename safe by replacing spaces and special chars
-          SAFE_TAG=$(echo "${{ matrix.tag }}" | tr ' ' '_' | tr '/' '_' | tr '\\' '_')
-          echo "latex_file=output_tag_${SAFE_TAG}.tex" >> $GITHUB_OUTPUT
-          echo "pdf_name=old-exam-questions-tag-${SAFE_TAG}.pdf" >> $GITHUB_OUTPUT
-          echo "safe_tag=${SAFE_TAG}" >> $GITHUB_OUTPUT
-
-      - name: Compile LaTeX Document
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: ${{ steps.latex_file.outputs.latex_file }}
-
-      - name: Rename PDF
-        run: |
-          LATEX_FILE="${{ steps.latex_file.outputs.latex_file }}"
-          PDF_FILE="${LATEX_FILE%.tex}.pdf"
-          mv "$PDF_FILE" "${{ steps.latex_file.outputs.pdf_name }}"
-
-      - name: Upload PDF as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pdf-tag-${{ steps.latex_file.outputs.safe_tag }}
-          path: ${{ steps.latex_file.outputs.pdf_name }}
-
   create-release:
-    needs: [build-and-release, build-tags]
+    needs: build-and-release
     runs-on: ubuntu-latest
     if: always()
     steps:
