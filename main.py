@@ -1,11 +1,12 @@
 import argparse
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 from models import Question, QuestionSubject
 import csv_parser
 from generators import registry, moodle_xml_registry
 from pylatexenc.latexencode import UnicodeToLatexEncoder
+from appendix_handler import AppendixHandler
 
 
 # Initialize Unicode to LaTeX encoder
@@ -49,12 +50,26 @@ def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None,
         questions = [q for q in questions if q.tags and tag_filter in q.tags]
         print(f"Filtering questions for tag: {tag_filter} ({len(questions)} questions)")
 
-    # Check if any questions reference machineForProblemStatements
-    has_machine_references = any(
-        'machineForProblemStatements' in str(q.content.get('sv', '')) or 
-        'machineForProblemStatements' in str(q.content.get('en', ''))
-        for q in questions
-    )
+    # Initialize appendix handler
+    appendix_handler = AppendixHandler("appendixes")
+    appendix_handler.scan_appendixes()
+
+    # Determine which appendixes are referenced
+    required_appendixes: Set[str] = set()
+
+    # Check each question for appendix placeholders in the format %appendix:filename.tex%
+    for q in questions:
+        question_text = str(q.content.get('sv', '')) + str(q.content.get('en', ''))
+        # Find all appendix placeholders
+        appendix_matches = re.findall(r'%appendix:([^%]+)%', question_text)
+        for appendix_file in appendix_matches:
+            # Ensure it has .tex extension
+            if not appendix_file.endswith('.tex'):
+                appendix_file += '.tex'
+            required_appendixes.add(appendix_file)
+
+    # For backward compatibility
+    has_machine_references = 'machine.tex' in required_appendixes
     
     # Determine the title
     if custom_title:
@@ -134,13 +149,19 @@ def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None,
     output = output.replace("% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_ONLY>>>", english_questions_only.strip())
     output = output.replace("% <<<TEMPLATEVAR_ENGLISH_QUESTIONS_AND_ANSWERS>>>", english_questions_and_answers.strip())
     
-    # Conditionally include machine appendix based on whether questions reference it
-    if not has_machine_references:
-        # Remove the machine appendix chapters
-        # Find and remove the appendix section
-        appendix_pattern = r'\\appendix.*?\\printbibliography'
-        replacement = r'\\printbibliography'
-        output = re.sub(appendix_pattern, replacement, output, flags=re.DOTALL)
+    # Generate appendix section dynamically based on required appendixes
+    appendix_section = appendix_handler.generate_appendix_section(required_appendixes)
+
+    # Replace the hardcoded appendix section in the template
+    # Find the old appendix section pattern
+    appendix_pattern = r'\\appendix.*?(?=\\printbibliography)'
+    if appendix_section:
+        # Replace with our dynamically generated appendix section
+        # Use lambda to avoid escape sequence issues
+        output = re.sub(appendix_pattern, lambda m: appendix_section, output, flags=re.DOTALL)
+    else:
+        # Remove the appendix section entirely if no appendixes are needed
+        output = re.sub(appendix_pattern, '', output, flags=re.DOTALL)
     
     # Replace the title
     output = output.replace("\\title{IDSV - Old Exam Questions, 2021-present}", f"\\title{{{encode_for_latex(document_title)}}}")

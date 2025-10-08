@@ -1,5 +1,6 @@
 import logging
 import random
+import re
 import xml.etree.ElementTree as ET
 from html import escape
 from typing import Dict
@@ -20,6 +21,22 @@ class _GeneratorRegistry:
 
 registry = _GeneratorRegistry()
 
+def process_appendix_placeholders(text: str) -> str:
+    """Replace %appendix:filename.tex% placeholders with proper LaTeX references."""
+    if not text:
+        return text
+
+    def replace_placeholder(match):
+        filename = match.group(1)
+        # Generate label from filename automatically
+        # Remove .tex extension and convert to a valid LaTeX label
+        label = "appendix:" + filename.replace('.tex', '').replace('-', '').replace('_', '').replace(' ', '')
+        return f"\\autoref{{{label}}}"
+
+    # Replace all appendix placeholders
+    processed = re.sub(r'%appendix:([^%]+)%', replace_placeholder, text)
+    return processed
+
 # Short Answer
 # TODO: Abstract and add essay variant which is basically the same but longer space for answer
 class ShortAnswerGenerator(Generator):
@@ -33,10 +50,14 @@ class ShortAnswerGenerator(Generator):
             # return f"\\textit{{{language.content_not_available_language}}}\n\n"
             return ""
 
-        latex = f"\\subsection*{{{content.question} ({question.id})}}\n\n"
+        # Process appendix placeholders in the question
+        processed_question = process_appendix_placeholders(content.question)
+        processed_answer = process_appendix_placeholders(content.answer) if content.answer else None
+
+        latex = f"\\subsection*{{{processed_question} ({question.id})}}\n\n"
         latex += f"\\label{{q:{question.id}:sa:{lang}:{with_answer}}}\n\n"
-        if with_answer and content.answer:
-            latex += f"\\textbf{{{language.answer}}}: {content.answer}\n\n"
+        if with_answer and processed_answer:
+            latex += f"\\textbf{{{language.answer}}}: {processed_answer}\n\n"
         elif with_answer and not content.answer:
             latex += f"\\textbf{{{language.answer}}}: {language.content_not_available_language}\n\n"
         else:
