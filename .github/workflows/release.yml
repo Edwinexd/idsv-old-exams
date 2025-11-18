@@ -126,7 +126,7 @@ jobs:
   create-release:
     needs: build-and-release
     runs-on: ubuntu-latest
-    if: always()
+    if: success()
     steps:
       - name: Extract Short Commit SHA
         id: short_sha
