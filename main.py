@@ -21,7 +21,10 @@ def encode_for_latex(text):
     """Convert Unicode characters to LaTeX-safe encoding using pylatexenc."""
     if not text:
         return text
-    
+
+    # First escape % characters which are LaTeX comments
+    text = text.replace('%', '\\%')
+
     return latex_encoder.unicode_to_latex(text)
 
 def generate_latex_document(csv_file: str, subject_filter: Optional[str] = None, chapter_filter: Optional[int] = None, tag_filter: Optional[str] = None, custom_title: Optional[str] = None):
