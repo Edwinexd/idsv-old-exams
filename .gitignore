@@ -10,6 +10,7 @@
 *.synctex(busy)
 *.toc
 *.bcf
+*.bcf-SAVE-ERROR
 *.run.xml
 .vscode/settings.json
 output.tex
