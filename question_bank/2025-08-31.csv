@@ -722,7 +722,7 @@ and you can assume that names are always entered in lowercase.",,,,,,,2025gC
 722,6,2,sa,REG,,Vilket värde kommer register 2 (R2) att ha efter två (2) maskincykler? Ange bitmönstret på hexadecimalform. (Se %appendix:machine-2025o.tex%),What value will register 2 (R2) have after two (2) machine cycles? Enter the bit pattern in hexadecimal form. (See %appendix:machine-2025o.tex%),60,60,,,,,2025o
 723,7,2,sa,PRC,,Vilket värde kommer programräknaren (PC) att ha efter två (2) maskincykler? Ange bitmönstret på hexadecimalform. (Se %appendix:machine-2025o.tex%),What value will the program counter (PC) have after two (2) machine cycles? Enter the bit pattern in hexadecimal form. (See %appendix:machine-2025o.tex%),04,04,,,,,2025o
 724,8,2,sa,LOG,,Vad är resultatet av en AND-operation (OCH-operation) på bitmönstren 10101001 och 11011100?,What is the result of an AND-operation on the bitpatterns 10101001 and 11011100?,10001000,10001000,,,,,2025o
-725,,,,PRG,,"Programmet kan editeras och kontrolleras obegränsat antal gånger. Ett program som klarar alla tester får full poäng
+725,,,code,PRG,,"Programmet kan editeras och kontrolleras obegränsat antal gånger. Ett program som klarar alla tester får full poäng
 (6 poäng, om inte något speciellt inträffar, t.ex. upptäckt fusk)), men även program som inte producerar helt rätt resultat
 eller innehåller syntaxfel kan få delpoäng. Obs! att radnummer i ev. felmeddelanden kanske inte stämmer, pga att miljön
 lägger in egen kod i det testade programmet.
